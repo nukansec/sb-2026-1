@@ -58,7 +58,7 @@ begin_while01:
     movq    -24(%rbp), %rdx
     movq    -32(%rbp), %rcx
 
-    # if (value <= calc(v2, v1)) break
+    # _if (value <= calc(v2, v1)) break
     cmpl    %al, %dl            # %dl tem 'value', %al tem o retorno do 'calc'
     jle     end_while01
 
