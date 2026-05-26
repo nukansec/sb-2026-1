@@ -7,15 +7,15 @@ c:  .byte   67      # 1 byte
 
     .globl  s
     .align  2
-s:  .word   23      # 2 bytes
+s:  .short   23      # 2 bytes
 
     .globl  i
     .align  4
-i:  .long   0       # 4 bytes
+i:  .int   0       # 4 bytes
 
     .globl  j
     .align  4
-j:  .long   0       # 4 bytes
+j:  .int   0       # 4 bytes
 
     .globl  l
     .align  8
@@ -23,7 +23,7 @@ l:  .quad   1023    # 8 bytes
 
     .globl  ui
     .align  4
-ui: .long   2047    # 4 bytes
+ui: .int   2047    # 4 bytes
 
     .globl  ul
     .align  8
@@ -40,8 +40,8 @@ atribuicoes:
 
     # Escrita direta na memória de acordo com os tamanhos:
     movb    $93, c      # byte (8 bits)
-    movw    $75, s      # word (16 bits)
-    movl    $52, j      # long (32 bits)
+    movw    $75, s      # word/short (16 bits)
+    movl    $52, j      # long/int (32 bits)
     movq    $7265, l    # quad (64 bits)
 
     # i = j (Via registrador eax de 32 bits)

@@ -1,0 +1,2750 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Software Basico -- Resumo P2 | Assembly x86-64</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3250;
+      --accent: #6c8aff; --accent2: #a78bfa; --text: #e2e8f0; --muted: #8892b0;
+      --green: #4ade80; --yellow: #facc15; --red: #f87171; --orange: #fb923c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.75; }
+    .page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+    header { text-align: center; margin-bottom: 48px; padding: 40px 24px; background: linear-gradient(135deg, #1a1d27, #22263a); border: 1px solid var(--border); border-radius: 16px; }
+    header h1 { font-size: 2rem; color: var(--accent); }
+    header p { color: var(--muted); margin-top: 8px; }
+    .badges { display: flex; gap: 8px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+    .badge-blue   { background: #1e3a8a44; color: #93c5fd; border: 1px solid #1e40af66; }
+    .badge-purple { background: #4c1d9544; color: #c4b5fd; border: 1px solid #6d28d966; }
+    .badge-green  { background: #14532d44; color: #86efac; border: 1px solid #16653166; }
+    .badge-orange { background: #7c2d1244; color: #fdba74; border: 1px solid #9a3b1466; }
+    .badge-red    { background: #7f1d1d44; color: #fca5a5; border: 1px solid #991b1b66; }
+    nav { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 40px; }
+    nav h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+    nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+    nav ul li a { display: block; padding: 6px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); text-decoration: none; font-size: 0.85rem; transition: all 0.2s; }
+    nav ul li a:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .search-bar { display: flex; gap: 12px; margin-bottom: 32px; }
+    .search-bar input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+    .search-bar input:focus { border-color: var(--accent); }
+    .search-bar input::placeholder { color: var(--muted); }
+    .chapter { margin-bottom: 48px; }
+    .chapter-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; border-left: 4px solid var(--accent); }
+    .chapter-number { font-size: 2rem; font-weight: 800; color: var(--accent); opacity: 0.5; min-width: 48px; }
+    .chapter-header h2 { font-size: 1.3rem; }
+    .chapter-header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    .accordion { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .accordion-btn { width: 100%; background: var(--surface); border: none; padding: 16px 20px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text); font-size: 0.95rem; font-weight: 600; transition: background 0.2s; }
+    .accordion-btn:hover { background: var(--surface2); }
+    .accordion-btn.active { background: var(--surface2); color: var(--accent); }
+    .accordion-icon { font-size: 1.2rem; transition: transform 0.2s; color: var(--muted); }
+    .accordion-btn.active .accordion-icon { transform: rotate(45deg); color: var(--accent); }
+    .accordion-content { display: none; background: var(--bg); padding: 28px; border-top: 1px solid var(--border); }
+    .accordion-content.open { display: block; }
+    h3 { color: var(--accent2); font-size: 1rem; margin: 24px 0 10px; }
+    h3:first-child { margin-top: 0; }
+    h4 { color: var(--yellow); font-size: 0.9rem; margin: 16px 0 8px; font-weight: 600; }
+    p { margin-bottom: 12px; }
+    ul, ol { margin: 8px 0 16px 20px; }
+    li { margin-bottom: 8px; }
+    strong { color: var(--accent); }
+    em { color: var(--yellow); font-style: normal; font-weight: 600; }
+    .table-wrap { overflow-x: auto; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { background: var(--surface2); color: var(--accent); padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); font-weight: 600; }
+    td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface); }
+    .callout { padding: 14px 18px; border-radius: 8px; margin: 16px 0; font-size: 0.9rem; border-left: 3px solid; }
+    .callout-blue   { background: #1e3a8a22; border-color: var(--accent); color: #93c5fd; }
+    .callout-yellow { background: #78350f22; border-color: var(--yellow); color: var(--yellow); }
+    .callout-red    { background: #7f1d1d22; border-color: var(--red); color: var(--red); }
+    .callout-green  { background: #14532d22; border-color: var(--green); color: var(--green); }
+    pre { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; margin: 16px 0; overflow-x: auto; font-size: 0.85rem; line-height: 1.6; }
+    pre code { background: none; color: var(--text); padding: 0; font-size: inherit; }
+    code { background: var(--surface2); color: var(--orange); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; font-family: 'Consolas', 'Courier New', monospace; }
+    pre .cm { color: var(--muted); }
+    pre .kw { color: var(--accent); }
+    pre .str { color: var(--green); }
+    pre .num { color: var(--orange); }
+    pre .lbl { color: var(--yellow); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .col-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+    .scroll-top { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #fff; border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 1.2rem; cursor: pointer; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(108,138,255,0.4); }
+    .scroll-top.visible { display: flex; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+    .reg-table td:nth-child(1) { color: var(--accent); font-family: monospace; font-weight: 700; }
+    .reg-table td:nth-child(2),
+    .reg-table td:nth-child(3),
+    .reg-table td:nth-child(4),
+    .reg-table td:nth-child(5) { font-family: monospace; color: var(--text); }
+    td code { color: var(--text); }
+    .reg-table td:nth-child(6) { color: var(--muted); font-size: 0.82rem; }
+    .highlight-row td { background: #1e3a8a15 !important; }
+    .chapter-header { cursor: pointer; user-select: none; transition: background 0.2s; }
+    .chapter-header:hover { background: var(--surface2); }
+    .chapter-toggle { margin-left: auto; font-size: 1.2rem; color: var(--muted); transition: transform 0.25s; flex-shrink: 0; }
+    .chapter-header.all-closed .chapter-toggle { transform: rotate(180deg); }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Software Basico &mdash; Resumo P2</h1>
+    <p>Assembly x86-64 (AMD64, Linux, AT&T Syntax) &bull; UFG 2026.1</p>
+    <div class="badges">
+      <span class="badge badge-blue">Aula 06.1 &mdash; Intro Assembly</span>
+      <span class="badge badge-purple">Aula 06.3 &mdash; Divisao</span>
+      <span class="badge badge-green">Aula 07 &mdash; Mecanismos de Controle</span>
+      <span class="badge badge-orange">Aula 08 &mdash; Acessando Arrays</span>
+      <span class="badge badge-red">Aula 09 &mdash; Chamada de Funcao</span>
+      <span class="badge badge-green">Gabaritos 2022 e 2025</span>
+    </div>
+  </header>
+
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Buscar instrucao, regra ou conceito..." />
+  </div>
+
+  <nav>
+    <h2>Indice rapido</h2>
+    <ul>
+      <li><a href="#notacao">Notacao AT&amp;T</a></li>
+      <li><a href="#registradores">Registradores</a></li>
+      <li><a href="#data">Secao .data</a></li>
+      <li><a href="#mov">MOV e Casts</a></li>
+      <li><a href="#aritmetica">Aritmetica</a></li>
+      <li><a href="#bitwise">Bit a Bit e Shifts</a></li>
+      <li><a href="#divisao">Divisao</a></li>
+      <li><a href="#controle">Mecanismos de Controle</a></li>
+      <li><a href="#arrays">Acessando Arrays</a></li>
+      <li><a href="#funcoes">Chamada de Funcao</a></li>
+      <li><a href="#padrao">Padrao da Prova</a></li>
+      <li><a href="#gabaritos">Gabaritos 2022 e 2025</a></li>
+    </ul>
+  </nav>
+
+  <!-- ===== NOTACAO AT&T ===== -->
+  <div class="chapter" id="notacao">
+    <div class="chapter-header">
+      <div class="chapter-number" style="font-size:1.3rem;min-width:48px">00</div>
+      <div>
+        <h2>Notacao AT&amp;T &mdash; Anatomia de um Comando</h2>
+        <p>Sufixos, prefixos e posicoes src/dst &mdash; leia antes de qualquer outra coisa</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Formato geral: instrucao[sufixo] src, dst <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>Todo comando Assembly em AT&T segue o mesmo padrao:</p>
+        <pre><code>instrucao[sufixo]   operando_fonte,   operando_destino
+                         (src)               (dst)</code></pre>
+        <div class="callout callout-red">
+          <strong>AT&T e o inverso do Intel:</strong> o destino fica sempre a <strong>direita</strong>. <code>addl %ecx, %eax</code> significa <code>%eax = %eax + %ecx</code>, nao o contrario. O resultado vai para o operando da direita.
+        </div>
+
+        <h3>Sufixos: tamanho do dado operado</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Sufixo</th><th>Tamanho</th><th>Tipo C correspondente</th><th>Registrador ex.</th></tr></thead>
+            <tbody>
+              <tr><td><code>b</code></td><td>8 bits (1 byte)</td><td><code>char</code></td><td><code>%al</code>, <code>%dil</code>, <code>%r9b</code></td></tr>
+              <tr><td><code>w</code></td><td>16 bits (2 bytes)</td><td><code>short</code></td><td><code>%ax</code>, <code>%si</code>, <code>%r9w</code></td></tr>
+              <tr><td><code>l</code></td><td>32 bits (4 bytes)</td><td><code>int</code></td><td><code>%eax</code>, <code>%edi</code>, <code>%r9d</code></td></tr>
+              <tr><td><code>q</code></td><td>64 bits (8 bytes)</td><td><code>long</code> / ponteiro</td><td><code>%rax</code>, <code>%rdi</code>, <code>%r9</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-yellow">
+          O sufixo da instrucao deve sempre combinar com o tamanho do tipo que voce esta operando em C. Se voce tem um <code>int</code>, usa <code>movl</code> / <code>addl</code> / <code>cmpl</code>. Se e <code>short</code>, usa <code>movw</code> / <code>cmpw</code>, e assim por diante.
+        </div>
+
+        <h3>Instrucoes com um unico operando (unarias)</h3>
+        <p>Algumas instrucoes tem apenas um operando, que e ao mesmo tempo fonte e destino:</p>
+        <pre><code>negl  %eax       <span class="cm"># %eax = -%eax    (src e dst sao o mesmo)</span>
+incl  %ecx       <span class="cm"># %ecx = %ecx + 1</span>
+decw  %si        <span class="cm"># %si  = %si - 1</span>
+imulb y          <span class="cm"># %al  = %al * y   (imulb: dst implicito e sempre %al)</span></code></pre>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Prefixos dos operandos: %, $, sem prefixo, (%reg) <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>O prefixo de um operando diz ao Assembly <em>de onde vem o dado</em> ou <em>onde ele sera escrito</em>:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Escrita</th><th>Significado</th><th>Quando usar</th><th>Exemplo</th></tr></thead>
+            <tbody>
+              <tr><td><code>%reg</code></td><td>Registrador</td><td>Qualquer operando em registrador</td><td><code>%eax</code>, <code>%rdi</code>, <code>%r9</code></td></tr>
+              <tr><td><code>$N</code></td><td>Constante numerica (imediata)</td><td>Valor fixo conhecido em tempo de compilacao</td><td><code>$5</code>, <code>$0</code>, <code>$-3</code>, <code>$128</code></td></tr>
+              <tr><td><code>$variavel</code></td><td>Endereco da variavel na memoria</td><td>Salvar o endereco de uma variavel global num registrador</td><td><code>$i</code>, <code>$arr</code>, <code>$fmt</code></td></tr>
+              <tr><td><code>variavel</code></td><td>Valor armazenado na variavel global</td><td>Ler ou escrever diretamente na variavel global (sem $)</td><td><code>i</code>, <code>max</code>, <code>timer</code></td></tr>
+              <tr><td><code>(%reg)</code></td><td>Desreferencia: valor no endereco guardado no reg</td><td>Acessar array ou ponteiro apos calcular o endereco</td><td><code>(%r9)</code>, <code>(%rdx)</code></td></tr>
+              <tr><td><code>N(%reg)</code></td><td>Desreferencia com offset fixo (reg + N bytes)</td><td>Atalho para elemento de array com indice constante</td><td><code>32(%rdi)</code>, <code>4(%r8)</code></td></tr>
+              <tr><td><code>-N(%rbp)</code></td><td>Posicao na pilha (rbp &minus; N bytes)</td><td>Salvar registradores antes de um call</td><td><code>-8(%rbp)</code>, <code>-16(%rbp)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Exemplos anotados</h3>
+        <pre><code><span class="cm">                   src           dst</span>
+movl    $5,         <span class="cm">↑</span>    %ecx    <span class="cm">↑</span>    <span class="cm"># %ecx = 5            ($5 = constante)</span>
+movl    i,               %eax         <span class="cm"># %eax = valor de i   (i sem $ = valor da global)</span>
+movq    $i,              %r8          <span class="cm"># %r8  = endereco de i ($i com $ = endereco)</span>
+movl    %eax,            j            <span class="cm"># j    = %eax          (j sem $ = grava na global)</span>
+movl    (%r9),           %edi         <span class="cm"># %edi = *r9           ((%r9) = desreferencia: le)</span>
+movl    %edi,            (%r9)        <span class="cm"># *r9  = %edi          ((%r9) = desreferencia: grava)</span>
+movq    %rdi,            -8(%rbp)     <span class="cm"># pilha[-8] = %rdi     (salvar antes de call)</span>
+movq    -8(%rbp),        %rdi         <span class="cm"># %rdi = pilha[-8]     (restaurar apos call)</span>
+movl    32(%rdi),        %eax         <span class="cm"># %eax = *(rdi+32)     (offset fixo = arr[8] se int[])</span></code></pre>
+
+        <div class="callout callout-red">
+          <strong>Memoria para memoria e proibido.</strong> Nao existe instrucao que leia de uma variavel global e escreva diretamente em outra. Sempre use um registrador no meio: <code>movl i, %eax</code> + <code>movl %eax, j</code>.
+        </div>
+        <div class="callout callout-yellow">
+          <strong>Resumo rapido:</strong> <code>$</code> antes de letra = endereco. Sem <code>$</code> = valor. <code>%</code> = registrador. <code>( )</code> = desreferencia (vai ate o endereco e acessa a memoria).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REGISTRADORES ===== -->
+  <div class="chapter" id="registradores">
+    <div class="chapter-header">
+      <div class="chapter-number">01</div>
+      <div>
+        <h2>Registradores</h2>
+        <p>Tabela completa de nomes por tamanho &mdash; cobrado diretamente na prova</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Tabela completa de registradores <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>Cada registrador fisico pode ser acessado em <strong>4 tamanhos diferentes</strong>. A instrucao usada deve sempre combinar com o tamanho do dado em C.</p>
+        <div class="table-wrap">
+          <table class="reg-table">
+            <thead>
+              <tr><th>64 bits</th><th>32 bits</th><th>16 bits</th><th>8 bits</th><th>Uso principal</th></tr>
+            </thead>
+            <tbody>
+              <tr class="highlight-row"><td>%rax</td><td>%eax</td><td>%ax</td><td>%al</td><td>Retorno de funcao, acumulador</td></tr>
+              <tr><td>%rbx</td><td>%ebx</td><td>%bx</td><td>%bl</td><td>Preservado (NAO usar nos labs)</td></tr>
+              <tr class="highlight-row"><td>%rcx</td><td>%ecx</td><td>%cx</td><td>%cl</td><td>4o argumento / contador de loops</td></tr>
+              <tr class="highlight-row"><td>%rdx</td><td>%edx</td><td>%dx</td><td>%dl</td><td>3o argumento / resto da divisao</td></tr>
+              <tr class="highlight-row"><td>%rsi</td><td>%esi</td><td>%si</td><td>%sil</td><td>2o argumento</td></tr>
+              <tr class="highlight-row"><td>%rdi</td><td>%edi</td><td>%di</td><td>%dil</td><td>1o argumento</td></tr>
+              <tr><td>%rbp</td><td>%ebp</td><td>%bp</td><td>%bpl</td><td>Base pointer (frame da pilha)</td></tr>
+              <tr><td>%rsp</td><td>%esp</td><td>%sp</td><td>%spl</td><td>Stack pointer (topo da pilha)</td></tr>
+              <tr class="highlight-row"><td>%r8</td><td>%r8d</td><td>%r8w</td><td>%r8b</td><td>5o argumento / temporario</td></tr>
+              <tr class="highlight-row"><td>%r9</td><td>%r9d</td><td>%r9w</td><td>%r9b</td><td>6o argumento / temporario</td></tr>
+              <tr class="highlight-row"><td>%r10</td><td>%r10d</td><td>%r10w</td><td>%r10b</td><td>Temporario</td></tr>
+              <tr class="highlight-row"><td>%r11</td><td>%r11d</td><td>%r11w</td><td>%r11b</td><td>Temporario</td></tr>
+              <tr><td>%r12</td><td>%r12d</td><td>%r12w</td><td>%r12b</td><td>Preservado (NAO usar nos labs)</td></tr>
+              <tr><td>%r13</td><td>%r13d</td><td>%r13w</td><td>%r13b</td><td>Preservado (NAO usar nos labs)</td></tr>
+              <tr><td>%r14</td><td>%r14d</td><td>%r14w</td><td>%r14b</td><td>Preservado (NAO usar nos labs)</td></tr>
+              <tr><td>%r15</td><td>%r15d</td><td>%r15w</td><td>%r15b</td><td>Preservado (NAO usar nos labs)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-yellow">
+          Nos labs e na prova: usar apenas <strong>%rax, %rcx, %rdx, %rdi, %rsi, %r8, %r9, %r10, %r11</strong> como temporarios. Nao usar %rbx nem %r12-%r15.
+        </div>
+        <h3>Mapeamento tipo C &rarr; registrador</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tipo C</th><th>Tamanho</th><th>1o arg</th><th>2o arg</th><th>3o arg</th><th>4o arg</th><th>Retorno</th></tr></thead>
+            <tbody>
+              <tr><td><code>char</code></td><td>1 byte (8 bits)</td><td>%dil</td><td>%sil</td><td>%dl</td><td>%cl</td><td>%al</td></tr>
+              <tr><td><code>short</code></td><td>2 bytes (16 bits)</td><td>%di</td><td>%si</td><td>%dx</td><td>%cx</td><td>%ax</td></tr>
+              <tr><td><code>int</code></td><td>4 bytes (32 bits)</td><td>%edi</td><td>%esi</td><td>%edx</td><td>%ecx</td><td>%eax</td></tr>
+              <tr><td><code>long</code> / ponteiro</td><td>8 bytes (64 bits)</td><td>%rdi</td><td>%rsi</td><td>%rdx</td><td>%rcx</td><td>%rax</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn">Quais registradores usar e quando &mdash; guia pratico <span class="accordion-icon">+</span></button>
+      <div class="accordion-content">
+
+        <h3>Grupo 1: nunca mexa</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Registrador</th><th>Por que nao usar</th></tr></thead>
+            <tbody>
+              <tr><td><code>%rbp</code></td><td>Base pointer da pilha. O prologo e epilogo gerenciam ele. Tocar aqui quebra o frame da funcao</td></tr>
+              <tr><td><code>%rsp</code></td><td>Stack pointer. Controlado pelo sistema. So e tocado via <code>subq $N, %rsp</code> no prologo</td></tr>
+              <tr><td><code>%rbx</code>, <code>%r12</code>&ndash;<code>%r15</code></td><td>Registradores preservados (callee-saved). O professor proibiu explicitamente nos labs e na prova</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Grupo 2: argumentos de funcao &mdash; posicao fixa</h3>
+        <p>Quando voce <strong>chama</strong> uma funcao, voce carrega os argumentos nesses registradores antes do <code>call</code>. Quando voce <strong>recebe</strong> uma chamada, os parametros ja chegam nesses registradores automaticamente.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Posicao</th><th>64 bits</th><th>32 bits</th><th>16 bits</th><th>8 bits</th></tr></thead>
+            <tbody>
+              <tr><td>1o param</td><td><code>%rdi</code></td><td><code>%edi</code></td><td><code>%di</code></td><td><code>%dil</code></td></tr>
+              <tr><td>2o param</td><td><code>%rsi</code></td><td><code>%esi</code></td><td><code>%si</code></td><td><code>%sil</code></td></tr>
+              <tr><td>3o param</td><td><code>%rdx</code></td><td><code>%edx</code></td><td><code>%dx</code></td><td><code>%dl</code></td></tr>
+              <tr><td>4o param</td><td><code>%rcx</code></td><td><code>%ecx</code></td><td><code>%cx</code></td><td><code>%cl</code></td></tr>
+              <tr><td>5o param</td><td><code>%r8</code></td><td><code>%r8d</code></td><td><code>%r8w</code></td><td><code>%r8b</code></td></tr>
+              <tr><td>6o param</td><td><code>%r9</code></td><td><code>%r9d</code></td><td><code>%r9w</code></td><td><code>%r9b</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-yellow">
+          O tamanho do registrador que voce usa deve combinar com o <strong>tipo do parametro na assinatura da funcao chamada</strong>, nao com o tipo de quem esta chamando. Ex: se a funcao espera <code>short v</code>, voce carrega em <code>%si</code> (16 bits), mesmo que o valor venha de um <code>int</code>.
+        </div>
+
+        <h3>Grupo 3: registradores com comportamento especial</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Registrador</th><th>Quando e obrigatorio</th><th>O que acontece</th></tr></thead>
+            <tbody>
+              <tr><td><code>%rax</code> / <code>%eax</code></td><td>Retorno de funcao e divisao</td><td>Depois de qualquer <code>call</code>, o valor de retorno esta em <code>%rax</code>. Na divisao, recebe o dividendo e entrega o quociente. Qualquer <code>call</code> destroi o valor que estava aqui</td></tr>
+              <tr><td><code>%rdx</code> / <code>%edx</code></td><td>Divisao e 3o argumento</td><td>Na divisao com sinal: preparado pelo <code>cdq</code>/<code>cqo</code> e entrega o resto. Se voce esta prestes a dividir, nao use <code>%rdx</code> para guardar outra coisa</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Grupo 4: temporarios livres</h3>
+        <p>Quando nao ha chamada de funcao rolando, esses registradores nao tem proposito fixo. Use como quiser para variaveis locais e calculos intermediarios:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Registrador</th><th>Uso convencional nos gabaritos</th></tr></thead>
+            <tbody>
+              <tr><td><code>%ecx</code> / <code>%rcx</code></td><td>Contador de loop (<code>int i</code>, <code>short j</code>). Convencao historica: cx = count</td></tr>
+              <tr><td><code>%r8</code></td><td>Endereco base de array (<code>movq $arr, %r8</code>)</td></tr>
+              <tr><td><code>%r9</code></td><td>Indice calculado do array (<code>&amp;arr[i]</code> apos imulq)</td></tr>
+              <tr><td><code>%r10</code></td><td>Valor temporario intermediario (calculos, indices compostos)</td></tr>
+              <tr><td><code>%r11</code></td><td>Segundo temporario quando <code>%r10</code> ja esta ocupado</td></tr>
+              <tr><td><code>%rdi</code> / <code>%rsi</code></td><td>Livres para uso geral quando nao ha <code>call</code> chegando. Mas se voce vai chamar uma funcao logo, ja use eles para carregar os argumentos</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Regra de ouro antes de um call</h3>
+        <div class="callout callout-red">
+          Depois de qualquer <code>call</code>, assuma que <strong>%rax, %rcx, %rdx, %rdi, %rsi, %r8, %r9, %r10, %r11</strong> foram destruidos. Se voce tem variaveis locais nesses registradores que precisa usar apos o call, salve na pilha antes (<code>movq %reg, -N(%rbp)</code>) e restaure depois.
+        </div>
+
+        <h3>Resumo: minha funcao tem uma variavel local int i, qual registrador uso?</h3>
+        <p>Nao existe regra que force a escolha. A unica restricao real e: nao use os proibidos, e respeite os registradores fixos (args e retorno) quando houver calls. Na pratica:</p>
+        <ul>
+          <li>Se <code>i</code> e um contador de loop: convencao e <code>%ecx</code></li>
+          <li>Se <code>i</code> tambem e o 4o argumento de um call que vai acontecer em breve: use outro registrador para nao conflitar</li>
+          <li>Se precisar de varios temporarios ao mesmo tempo: distribua entre <code>%r10</code>, <code>%r11</code>, <code>%r8</code>, <code>%r9</code></li>
+          <li>Documente com comentario: <code># int i -> %ecx</code> no inicio da funcao</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECAO .DATA ===== -->
+  <div class="chapter" id="data">
+    <div class="chapter-header">
+      <div class="chapter-number">02</div>
+      <div>
+        <h2>Secao .data &mdash; Variaveis Globais</h2>
+        <p>Como declarar variaveis e arrays globais em Assembly</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Diretivas de declaracao e alinhamento <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>Toda variavel global precisa de <strong>3 itens</strong>: <code>.globl nome</code>, <code>.align N</code> e a diretiva com o valor.</p>
+        <div class="callout callout-blue">
+          Regra de alinhamento: <strong>.align N</strong> onde N e o tamanho do tipo. char=1, short=2, int=4, long=8. Arrays usam o mesmo alinhamento do elemento.
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tipo C</th><th>Diretiva AS</th><th>Align</th><th>Exemplo</th></tr></thead>
+            <tbody>
+              <tr><td><code>char</code></td><td><code>.byte</code></td><td>1</td><td><code>c: .byte -20</code></td></tr>
+              <tr><td><code>short</code></td><td><code>.short</code> ou <code>.word</code></td><td>2</td><td><code>s: .short 1024</code></td></tr>
+              <tr><td><code>int</code></td><td><code>.int</code> ou <code>.long</code></td><td>4</td><td><code>i: .int -256</code></td></tr>
+              <tr><td><code>long</code></td><td><code>.quad</code></td><td>8</td><td><code>l: .quad 128</code></td></tr>
+              <tr><td><code>char[]</code> / string</td><td><code>.string</code></td><td>1</td><td><code>msg: .string "texto\n"</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Exemplo completo</h3>
+        <pre><code><span class="cm"># C: char c = -20;  int i = -256;  long arr[3] = {1,2,3};</span>
+
+    .data
+
+    .globl  c
+    .align  1
+c:  .byte   -20
+
+    .globl  i
+    .align  4
+i:  .int    -256
+
+    .globl  arr
+    .align  8
+arr: .quad  1, 2, 3    <span class="cm"># array: elementos separados por virgula</span>
+
+<span class="cm"># Strings de formato ficam em .rodata (read-only)</span>
+    .section .rodata
+fmt: .string "%d\n"</code></pre>
+        <div class="callout callout-yellow">
+          <strong>$variavel</strong> = endereco da variavel na memoria &nbsp;|&nbsp; <strong>variavel</strong> (sem $) = valor armazenado nela.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MOV E CASTS ===== -->
+  <div class="chapter" id="mov">
+    <div class="chapter-header">
+      <div class="chapter-number">03</div>
+      <div>
+        <h2>MOV e Casts (Conversao de Tipo)</h2>
+        <p>Como o compilador traduz cada tipo de conversao em C</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">MOV simples (mesmo tamanho) <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>Quando origem e destino tem o mesmo tamanho, usa-se o sufixo correspondente:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>Tamanho</th><th>Exemplo</th></tr></thead>
+            <tbody>
+              <tr><td><code>movb</code></td><td>8 bits (byte)</td><td><code>movb $93, c</code></td></tr>
+              <tr><td><code>movw</code></td><td>16 bits (word)</td><td><code>movw $75, s</code></td></tr>
+              <tr><td><code>movl</code></td><td>32 bits (long)</td><td><code>movl $52, j</code></td></tr>
+              <tr><td><code>movq</code></td><td>64 bits (quad)</td><td><code>movq $4096, l</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Enderecos sao sempre 64 bits</h3>
+        <div class="callout callout-red">
+          Sempre que for salvar o <strong>endereco</strong> de uma variavel ou array em um registrador, use <strong>movq</strong> e um registrador de <strong>64 bits</strong>. Endereco de memoria em AMD64 ocupa 8 bytes &mdash; independente do tipo da variavel apontada.
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="col-label">Correto</div>
+            <pre><code><span class="cm"># ptr = &i  (i eh int, mas o endereco e 64 bits)</span>
+movq  $i, %r8       <span class="cm"># movq + reg 64 bits</span>
+
+<span class="cm"># ptr = &arr[0]  (array de short)</span>
+movq  $arr, %r9     <span class="cm"># movq + reg 64 bits</span>
+
+<span class="cm"># ponteiro como parametro de funcao</span>
+movq  $r, %rcx      <span class="cm"># 4o param int* -> %rcx (64 bits)</span></code></pre>
+          </div>
+          <div>
+            <div class="col-label">Errado</div>
+            <pre><code"><span class="cm"># ERRADO: movl so copia 32 bits</span>
+movl  $i, %r8d      <span class="cm"># trunca o endereco!</span>
+
+<span class="cm"># ERRADO: registrador de 32 bits</span>
+movl  $arr, %edi    <span class="cm"># perde metade do endereco!</span></code></pre>
+          </div>
+        </div>
+        <p>A unica excecao e mover o <strong>valor</strong> de uma variavel (sem o $), que obedece o tamanho do tipo:</p>
+        <pre><code><span class="cm"># Valor de int i  -> movl (4 bytes)</span>
+movl  i, %eax
+
+<span class="cm"># Endereco de int i  -> movq (8 bytes)</span>
+movq  $i, %r8</code></pre>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">movs &mdash; Extensao de sinal (tipos COM sinal) <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p><strong>movs</strong> = move com extensao de <strong>sinal</strong>. Usado quando o tipo C com sinal (char, short, int, long) vai para um tipo maior. A instrucao copia o <strong>bit mais significativo (bit de sinal)</strong> da origem e replica ele em todos os bits extras do destino. Assim, um numero negativo continua negativo e um positivo continua positivo apos a extensao.</p>
+        <p>O sufixo indica a conversao: a primeira letra e o tamanho da origem, a segunda letra e o tamanho do destino. Ex: <code>movsbl</code> = move sign-extended de <strong>b</strong>yte para <strong>l</strong>ong (int de 32 bits).</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>Conversao</th><th>Exemplo C</th><th>Exemplo ASM</th></tr></thead>
+            <tbody>
+              <tr><td><code>movsbw</code></td><td>char &rarr; short</td><td><code>s = c;</code></td><td><code>movsbw c, %ax</code></td></tr>
+              <tr><td><code>movsbl</code></td><td>char &rarr; int</td><td><code>j = c;</code></td><td><code>movsbl c, %eax</code></td></tr>
+              <tr><td><code>movsbq</code></td><td>char &rarr; long</td><td><code>l = c;</code></td><td><code>movsbq c, %rax</code></td></tr>
+              <tr><td><code>movswl</code></td><td>short &rarr; int</td><td><code>i = s;</code></td><td><code>movswl s, %edx</code></td></tr>
+              <tr><td><code>movswq</code></td><td>short &rarr; long</td><td><code>l = s;</code></td><td><code>movswq s, %rax</code></td></tr>
+              <tr><td><code>movslq</code></td><td>int &rarr; long</td><td><code>l = i;</code></td><td><code>movslq %ecx, %rcx</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-blue">
+          <code>movslq %ecx, %rcx</code> e muito usado para preparar um indice int como offset de 64 bits antes de calcular enderecos de array.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">movz &mdash; Extensao com zeros (tipos SEM sinal) <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p><strong>movz</strong> = move com extensao de <strong>zero</strong>. Usado quando o tipo C sem sinal (unsigned char, unsigned short, unsigned int) vai para um tipo maior. A instrucao preenche todos os bits extras do destino com <strong>0</strong>, ignorando o bit de sinal (que nao existe em tipos unsigned). Como valores unsigned sao sempre positivos, zerar a parte alta preserva o valor numerico.</p>
+        <p>Mesma logica de sufixo do movs: primeira letra = tamanho origem, segunda letra = tamanho destino. Ex: <code>movzbq</code> = move zero-extended de <strong>b</strong>yte para <strong>q</strong>uad (long de 64 bits).</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>Conversao</th><th>Exemplo C</th><th>Exemplo ASM</th></tr></thead>
+            <tbody>
+              <tr><td><code>movzbw</code></td><td>unsigned char &rarr; unsigned short</td><td><code>us = uc;</code></td><td><code>movzbw uc, %ax</code></td></tr>
+              <tr><td><code>movzbl</code></td><td>unsigned char &rarr; unsigned int</td><td><code>ui = uc;</code></td><td><code>movzbl uc, %eax</code></td></tr>
+              <tr><td><code>movzbq</code></td><td>unsigned char &rarr; unsigned long</td><td><code>ul = uc;</code></td><td><code>movzbq uc, %rax</code></td></tr>
+              <tr><td><code>movzwl</code></td><td>unsigned short &rarr; unsigned int</td><td><code>ui = us;</code></td><td><code>movzwl us, %eax</code></td></tr>
+              <tr><td><code>movzwq</code></td><td>unsigned short &rarr; unsigned long</td><td><code>ul = us;</code></td><td><code>movzwq us, %rax</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-red">
+          <strong>movzlq NAO existe!</strong> Para converter unsigned int em unsigned long, basta usar <code>movl</code> normal. Em x86-64, escrever em um registrador de 32 bits <strong>zera automaticamente</strong> a parte alta do registrador de 64 bits correspondente. Esse comportamento e exclusivo do tamanho 32 bits.
+        </div>
+        <pre><code><span class="cm"># unsigned long ul = ui;  (NAO existe movzlq)</span>
+movl  ui, %eax        <span class="cm"># escrever em %eax ja zera os 32 bits altos de %rax</span>
+movq  %rax, ul        <span class="cm"># agora %rax tem o valor com a parte alta zerada</span></code></pre>
+        <div class="callout callout-blue">
+          <strong>Regra rapida movs vs movz:</strong> tipo C com sinal &rarr; <strong>movs</strong> (copia bit de sinal). Tipo C sem sinal &rarr; <strong>movz</strong> (preenche com zero). A unica excecao e unsigned int &rarr; unsigned long, que usa movl em vez de um movzlq inexistente.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Truncamento (tipo maior &rarr; tipo menor) <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>Truncamento e o caminho contrario da extensao: tipo maior atribuido a tipo menor. Nao existe instrucao especial. Basta <strong>gravar no destino usando o registrador menor</strong> (a parte baixa do registrador maior). Os bits altos sao simplesmente descartados.</p>
+        <pre><code><span class="cm"># c = i + j;  (resultado int truncado para char)</span>
+movl  i, %ecx
+addl  j, %ecx    <span class="cm"># soma em 32 bits</span>
+movb  %cl, c     <span class="cm"># salva apenas os 8 bits baixos (%cl)</span>
+
+<span class="cm"># us = ul;  (long truncado para short)</span>
+movq  ul, %rax
+movw  %ax, us    <span class="cm"># salva apenas os 16 bits baixos (%ax)</span></code></pre>
+        <div class="callout callout-yellow">
+          Voce escolhe a parte menor do registrador (%cl, %ax, %eax, etc.) compativel com o tamanho do tipo destino. Nada de movs/movz aqui.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Ponteiros: *ptr em C vira (%reg) em Assembly <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <div class="callout callout-blue">
+          Em Assembly, parenteses em volta de um registrador significam "va ate o endereco guardado nesse registrador e acesse a memoria". Isso e exatamente o que o operador <code>*</code> faz em C.
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Operacao em C</th><th>O que faz</th><th>Traducao Assembly</th></tr></thead>
+            <tbody>
+              <tr><td><code>ptr = &amp;var</code></td><td>salva o endereco de var no ponteiro</td><td><code>movq $var, %reg</code> &mdash; sempre movq (endereco = 64 bits)</td></tr>
+              <tr><td><code>x = *ptr</code></td><td>le o valor no endereco apontado</td><td><code>movX (%reg), %dest</code></td></tr>
+              <tr><td><code>*ptr = x</code></td><td>escreve o valor no endereco apontado</td><td><code>movX %src, (%reg)</code></td></tr>
+              <tr><td><code>ptr++</code></td><td>avanca o ponteiro pelo sizeof do tipo</td><td><code>addq $N, %reg</code> (N = sizeof do tipo apontado)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Exemplo completo</h3>
+        <pre><code><span class="cm">/* C:
+   long *ptr;
+   ptr = &l;       // ptr aponta para l
+   *ptr = 128;     // escreve 128 em l via ponteiro
+   j = j + *iptr; // le o valor apontado por iptr
+*/</span>
+
+<span class="cm"># ptr = &l  (salva endereco de l no registrador %r10)</span>
+movq  $l, %r10          <span class="cm"># movq porque endereco e sempre 64 bits</span>
+
+<span class="cm"># *ptr = 128  (escreve 128 no endereco guardado em %r10)</span>
+movq  $128, (%r10)      <span class="cm"># (%r10) = desreferencia: vai ate o endereco e escreve</span>
+
+<span class="cm"># j = j + *iptr  (le o valor no endereco guardado em %rdx)</span>
+movl  j, %eax
+addl  (%rdx), %eax      <span class="cm"># (%rdx) = desreferencia: le o int no endereco</span>
+movl  %eax, j</code></pre>
+
+        <h3>O sufixo do mov combina com o tipo APONTADO, nao com o ponteiro</h3>
+        <pre><code><span class="cm"># short *ptr  ->  o ponteiro em si ocupa 64 bits (movq $var, %reg)</span>
+<span class="cm"># mas ao LER ou ESCREVER via *ptr, o tamanho e o do short (movw)</span>
+
+movq  $s, %r11          <span class="cm"># salva endereco de s (short) em %r11  ->  movq (64 bits)</span>
+movw  $128, (%r11)      <span class="cm"># *ptr = 128  ->  movw porque *ptr e short (16 bits)</span>
+
+<span class="cm"># int *iptr  ->  ao ler *iptr, usa movl (int = 32 bits)</span>
+movq  $i, %rdx          <span class="cm"># salva endereco (64 bits)</span>
+movl  (%rdx), %eax      <span class="cm"># le *iptr  ->  movl porque *iptr e int (32 bits)</span></code></pre>
+
+        <div class="callout callout-yellow">
+          Resumo: <strong>salvar o endereco</strong> no registrador = sempre <code>movq</code> (64 bits). <strong>Ler ou escrever</strong> via ponteiro = tamanho do tipo apontado (movb/movw/movl/movq).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ARITMETICA ===== -->
+  <div class="chapter" id="aritmetica">
+    <div class="chapter-header">
+      <div class="chapter-number">04</div>
+      <div>
+        <h2>Aritmetica</h2>
+        <p>add, sub, imul, neg, inc, dec e suas variantes por tamanho</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Instrucoes aritmeticas <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>Operacao</th><th>Sufixos</th><th>Exemplo</th></tr></thead>
+            <tbody>
+              <tr><td><code>add</code></td><td>dst = dst + src</td><td>b/w/l/q</td><td><code>addl %eax, s</code></td></tr>
+              <tr><td><code>sub</code></td><td>dst = dst - src</td><td>b/w/l/q</td><td><code>subl $5, %ecx</code></td></tr>
+              <tr><td><code>imul</code></td><td>dst = dst * src (com sinal)</td><td>w/l/q</td><td><code>imulq $4, %r9</code> &nbsp;|&nbsp; <code>imulw %ax, %si</code></td></tr>
+              <tr><td><code>neg</code></td><td>dst = -dst</td><td>b/w/l/q</td><td><code>negl %eax</code></td></tr>
+              <tr><td><code>inc</code></td><td>dst = dst + 1</td><td>b/w/l/q</td><td><code>incl %ecx</code></td></tr>
+              <tr><td><code>dec</code></td><td>dst = dst - 1</td><td>b/w/l/q</td><td><code>decl %edx</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-red">
+          <strong>imulb tem formato diferente dos outros.</strong> Aceita apenas <strong>um operando</strong> (reg ou mem) sem constante direta. O operando implicito e sempre <strong>%al</strong> e o resultado fica em <strong>%al</strong>. Sempre mova o valor desejado para <code>%al</code> antes de chamar <code>imulb</code>.
+        </div>
+        <pre><code><span class="cm"># C: res = x * y;   (x, y, res sao char)</span>
+movb  x, %al         <span class="cm"># mover UM dos fatores para %al (obrigatorio)</span>
+imulb y              <span class="cm"># %al = %al * y  (y: reg ou mem, nao constante)</span>
+movb  %al, res       <span class="cm"># resultado sempre em %al</span>
+
+<span class="cm"># Se um fator for constante, mover para registrador antes:</span>
+movb  $5, %cl        <span class="cm"># imulb $5 nao existe -- mova para reg primeiro</span>
+movb  x, %al
+imulb %cl            <span class="cm"># %al = %al * %cl</span></code></pre>
+        <div class="callout callout-blue">
+          <strong>Sintaxe AT&amp;T (ordem invertida):</strong> <code>addl src, dst</code> significa <code>dst = dst + src</code>. O destino fica sempre a direita.
+        </div>
+        <h3>Exemplo: expressao aritmetica</h3>
+        <pre><code><span class="cm"># C: i = (i * 2) - (j + 5);</span>
+<span class="cm">#    instrucao  src,   dst      resultado</span>
+movl  i,    %edx        <span class="cm"># %edx = valor de i   (global 'i' sem $ = valor)</span>
+imull $2,   %edx        <span class="cm"># %edx = %edx * 2     ($2 = constante; dst recebe o produto)</span>
+movl  j,    %edi        <span class="cm"># %edi = valor de j</span>
+addl  $5,   %edi        <span class="cm"># %edi = %edi + 5</span>
+subl  %edi, %edx        <span class="cm"># %edx = %edx - %edi  (src=%edi, dst=%edx)</span>
+movl  %edx, i           <span class="cm"># i    = %edx         (grava resultado na global)</span></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BIT A BIT ===== -->
+  <div class="chapter" id="bitwise">
+    <div class="chapter-header">
+      <div class="chapter-number">05</div>
+      <div>
+        <h2>Operacoes Bit a Bit e Shifts</h2>
+        <p>and, or, xor, shl, shr, sar &mdash; diferenca entre shift aritmetico e logico</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Instrucoes bit a bit <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>C</th><th>Instrucao</th><th>Operacao</th><th>Exemplo</th></tr></thead>
+            <tbody>
+              <tr><td><code>a &amp; b</code></td><td><code>and[b/w/l/q]</code></td><td>AND bit a bit</td><td><code>andb $0x0F, c</code></td></tr>
+              <tr><td><code>a | b</code></td><td><code>or[b/w/l/q]</code></td><td>OR bit a bit</td><td><code>orw $0x80, s</code></td></tr>
+              <tr><td><code>a ^ b</code></td><td><code>xor[b/w/l/q]</code></td><td>XOR bit a bit</td><td><code>xorl $0x55, i</code></td></tr>
+              <tr><td><code>a &lt;&lt; n</code></td><td><code>shl[b/w/l/q]</code></td><td>Shift left (entra 0)</td><td><code>shll $1, ui</code></td></tr>
+              <tr><td><code>a &gt;&gt; n</code> (unsigned)</td><td><code>shr[b/w/l/q]</code></td><td>Shift logico direita (entra 0)</td><td><code>shrq $4, ul</code></td></tr>
+              <tr><td><code>a &gt;&gt; n</code> (signed)</td><td><code>sar[b/w/l/q]</code></td><td>Shift aritmetico direita (copia bit de sinal)</td><td><code>sarq $2, l</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-red">
+          <strong>SAR vs SHR:</strong> se o tipo for COM sinal (int, long, char, short), use <strong>SAR</strong> no shift direita. Se for SEM sinal (unsigned), use <strong>SHR</strong>. Shift esquerda e sempre <strong>SHL</strong> independente do sinal.
+        </div>
+        <h3>Expressao composta com XOR</h3>
+        <pre><code><span class="cm"># C: j = (j | s) ^ c;   (j=int, s=short, c=char)</span>
+<span class="cm">#  instrucao  src,    dst        explicacao</span>
+movswl  s,    %ecx    <span class="cm"># %ecx = (int)s    (src=mem 's', dst=%ecx; movs = extensao de sinal short->int)</span>
+orl     j,    %ecx    <span class="cm"># %ecx = %ecx | j  (src=mem 'j', dst=%ecx; OR em 32 bits)</span>
+movsbl  c,    %r10d   <span class="cm"># %r10d = (int)c   (src=mem 'c', dst=%r10d; movs char->int)</span>
+xorl    %r10d,%ecx    <span class="cm"># %ecx = %ecx ^ %r10d  (src=%r10d, dst=%ecx)</span>
+movl    %ecx, j       <span class="cm"># j = %ecx         (src=%ecx, dst=global 'j' sem $)</span></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIVISAO ===== -->
+  <div class="chapter" id="divisao">
+    <div class="chapter-header">
+      <div class="chapter-number">06</div>
+      <div>
+        <h2>Divisao (Aula 06.3)</h2>
+        <p>idiv / div &mdash; instrucoes especiais que exigem registradores especificos</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Como a divisao funciona em Assembly <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <div class="callout callout-red">
+          Divisao e diferente de todas as outras operacoes: o dividendo precisa estar num par de registradores especifico e o divisor NAO pode ser um valor imediato.
+        </div>
+        <h3>Divisao com sinal (tipos int, long, char, short)</h3>
+        <div class="two-col">
+          <div>
+            <div class="col-label">32 bits (int)</div>
+            <pre><code><span class="cm"># C: q = a / b;   r = a % b;</span>
+movl  a,    %eax  <span class="cm"># %eax = valor de a  (dividendo: OBRIGATORIO ir para %eax)</span>
+cdq               <span class="cm"># estende %eax para %edx:%eax  (sem operandos)</span>
+idivl b           <span class="cm"># divide %edx:%eax por b  (b: reg, mem ou constante em reg)</span>
+                  <span class="cm"># quociente -> %eax  (automatico, sem dst explicito)</span>
+                  <span class="cm"># resto     -> %edx  (automatico)</span>
+movl  %eax, q     <span class="cm"># q = quociente</span>
+movl  %edx, r     <span class="cm"># r = resto</span></code></pre>
+          </div>
+          <div>
+            <div class="col-label">64 bits (long)</div>
+            <pre><code><span class="cm"># C: q = a / b;   r = a % b;</span>
+movq  a,    %rax  <span class="cm"># %rax = valor de a  (dividendo: OBRIGATORIO ir para %rax)</span>
+cqo               <span class="cm"># estende %rax para %rdx:%rax  (sem operandos)</span>
+idivq b           <span class="cm"># divide %rdx:%rax por b</span>
+                  <span class="cm"># quociente -> %rax  (automatico)</span>
+                  <span class="cm"># resto     -> %rdx  (automatico)</span>
+movq  %rax, q     <span class="cm"># q = quociente</span>
+movq  %rdx, r     <span class="cm"># r = resto</span></code></pre>
+          </div>
+        </div>
+        <h3>Divisao sem sinal (tipos unsigned)</h3>
+        <pre><code><span class="cm"># unsigned int: zeramos %edx antes em vez de cdq</span>
+movl   a, %eax
+xorl   %edx, %edx   <span class="cm"># zera %edx (sem extensao de sinal)</span>
+divl   b             <span class="cm"># quociente -> %eax, resto -> %edx</span></code></pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tamanho</th><th>Preparacao</th><th>Instrucao</th><th>Quociente</th><th>Resto</th></tr></thead>
+            <tbody>
+              <tr><td>32 bits (int)</td><td><code>cdq</code></td><td><code>idivl</code></td><td>%eax</td><td>%edx</td></tr>
+              <tr><td>64 bits (long)</td><td><code>cqo</code></td><td><code>idivq</code></td><td>%rax</td><td>%rdx</td></tr>
+              <tr><td>32 bits (unsigned)</td><td><code>xorl %edx,%edx</code></td><td><code>divl</code></td><td>%eax</td><td>%edx</td></tr>
+              <tr><td>64 bits (unsigned)</td><td><code>xorq %rdx,%rdx</code></td><td><code>divq</code></td><td>%rax</td><td>%rdx</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MECANISMOS DE CONTROLE ===== -->
+  <div class="chapter" id="controle">
+    <div class="chapter-header">
+      <div class="chapter-number">07</div>
+      <div>
+        <h2>Mecanismos de Controle</h2>
+        <p>if/else, while, for, break &mdash; logica invertida nos jumps</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Logica invertida: a regra mais importante da prova <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <div class="callout callout-red">
+          Em Assembly, o <code>if</code> pula para o <strong>fim do bloco quando a condicao e FALSA</strong>. Entao o jump usado e sempre o OPOSTO da condicao C.
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Condicao C</th><th>cmp (AT&T)</th><th>Jump (logica invertida)</th><th>Justificativa</th></tr></thead>
+            <tbody>
+              <tr><td><code>if (a &gt; b)</code></td><td><code>cmpl b, %eax</code> (eax=a)</td><td><code>jle end_if</code></td><td>pula se NAO (a &gt; b)</td></tr>
+              <tr><td><code>if (a &gt;= b)</code></td><td><code>cmpl b, %eax</code></td><td><code>jl end_if</code></td><td>pula se NAO (a &gt;= b)</td></tr>
+              <tr><td><code>if (a &lt; b)</code></td><td><code>cmpl b, %eax</code></td><td><code>jge end_if</code></td><td>pula se NAO (a &lt; b)</td></tr>
+              <tr><td><code>if (a &lt;= b)</code></td><td><code>cmpl b, %eax</code></td><td><code>jg end_if</code></td><td>pula se NAO (a &lt;= b)</td></tr>
+              <tr><td><code>if (a == b)</code></td><td><code>cmpl b, %eax</code></td><td><code>jne end_if</code></td><td>pula se NAO (a == b)</td></tr>
+              <tr><td><code>if (a != b)</code></td><td><code>cmpl b, %eax</code></td><td><code>je end_if</code></td><td>pula se NAO (a != b)</td></tr>
+              <tr><td><code>if (a)</code></td><td><code>cmpl $0, a</code></td><td><code>je end_if</code></td><td>pula se a == 0 (falso)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-yellow">
+          <strong>Atencao com cmpb/cmpw/cmpl/cmpq:</strong> use sempre o sufixo correspondente ao tamanho do dado sendo comparado. <code>cmpb</code> para char, <code>cmpw</code> para short, <code>cmpl</code> para int, <code>cmpq</code> para long.
+        </div>
+
+        <h3>Tabela completa de jumps</h3>
+        <p>Todos os jumps leem as flags setadas pelo <code>cmp</code> anterior. A escolha depende do tipo: <strong>com sinal</strong> (char, short, int, long) ou <strong>sem sinal</strong> (unsigned).</p>
+
+        <h4>Jumps para tipos COM sinal (os mais usados na prova)</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>Significado</th><th>Condicao C equivalente</th><th>Quando usar como logica invertida</th></tr></thead>
+            <tbody>
+              <tr><td><code>je</code></td><td>Jump if Equal (igual)</td><td><code>a == b</code></td><td>Pular o bloco de <code>if (a != b)</code></td></tr>
+              <tr><td><code>jne</code></td><td>Jump if Not Equal (diferente)</td><td><code>a != b</code></td><td>Pular o bloco de <code>if (a == b)</code></td></tr>
+              <tr><td><code>jl</code></td><td>Jump if Less (menor)</td><td><code>a &lt; b</code></td><td>Pular o bloco de <code>if (a &gt;= b)</code></td></tr>
+              <tr><td><code>jle</code></td><td>Jump if Less or Equal (menor ou igual)</td><td><code>a &lt;= b</code></td><td>Pular o bloco de <code>if (a &gt; b)</code></td></tr>
+              <tr><td><code>jg</code></td><td>Jump if Greater (maior)</td><td><code>a &gt; b</code></td><td>Pular o bloco de <code>if (a &lt;= b)</code></td></tr>
+              <tr><td><code>jge</code></td><td>Jump if Greater or Equal (maior ou igual)</td><td><code>a &gt;= b</code></td><td>Pular o bloco de <code>if (a &lt; b)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Jumps para tipos SEM sinal (unsigned)</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>Significado</th><th>Equivalente signed</th></tr></thead>
+            <tbody>
+              <tr><td><code>jb</code></td><td>Jump if Below (abaixo)</td><td>Equivale a <code>jl</code> para unsigned</td></tr>
+              <tr><td><code>jbe</code></td><td>Jump if Below or Equal</td><td>Equivale a <code>jle</code> para unsigned</td></tr>
+              <tr><td><code>ja</code></td><td>Jump if Above (acima)</td><td>Equivale a <code>jg</code> para unsigned</td></tr>
+              <tr><td><code>jae</code></td><td>Jump if Above or Equal</td><td>Equivale a <code>jge</code> para unsigned</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Jump incondicional</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>Quando usar</th></tr></thead>
+            <tbody>
+              <tr><td><code>jmp label</code></td><td>Pular sempre, sem condicao. Usado para: fechar o bloco if antes do else, voltar ao inicio do loop (<code>jmp begin_while</code>), implementar <code>break</code> e ir direto ao bloco no padrao OR</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-blue">
+          <strong>Macete para decorar:</strong> j<strong>l</strong> = <strong>l</strong>ess, j<strong>g</strong> = <strong>g</strong>reater, j<strong>e</strong> = <strong>e</strong>qual, j<strong>n</strong>e = <strong>n</strong>ot equal. O <strong>e</strong> no final adiciona o "or equal": j<strong>le</strong> = less or equal, j<strong>ge</strong> = greater or equal.
+        </div>
+
+        <h3>Como montar o cmpX: qual operando vai onde?</h3>
+        <p><code>cmpl src, dst</code> computa internamente <strong>dst &minus; src</strong> para setar as flags. Isso significa:</p>
+        <ul>
+          <li>O operando que representa o <strong>lado esquerdo</strong> da comparacao C vai no <strong>registrador (dst, posicao direita)</strong></li>
+          <li>O operando que representa o <strong>lado direito</strong> da comparacao C vai como <strong>src (posicao esquerda)</strong></li>
+        </ul>
+        <div class="two-col">
+          <div>
+            <div class="col-label">C</div>
+            <pre><code>if (stamp > values[i])
+if (sum < timer)
+if (i >= 0)</code></pre>
+          </div>
+          <div>
+            <div class="col-label">Assembly</div>
+            <pre><code>cmpl  %r8d, %edi     <span class="cm"># edi=stamp, r8d=values[i]  -> edi-r8d</span>
+cmpl  %r9d, %edi     <span class="cm"># edi=sum,   r9d=timer      -> edi-r9d</span>
+cmpl  $0,   %ecx     <span class="cm"># ecx=i,     $0             -> ecx-0</span></code></pre>
+          </div>
+        </div>
+        <div class="callout callout-blue">
+          Regra pratica: carregue a variavel que esta a <strong>esquerda do operador</strong> em C dentro de um registrador. Ela vai na <strong>direita</strong> do cmpX. A variavel ou constante da <strong>direita</strong> do operador vai como <strong>src</strong> (esquerda do cmpX). Memoria-para-memoria e proibido: se ambos sao globais, carregue um em registrador primeiro.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn">Estruturas if/else, while, for e break <span class="accordion-icon">+</span></button>
+      <div class="accordion-content">
+        <h3>if / else</h3>
+        <div class="two-col">
+          <div>
+            <div class="col-label">C</div>
+            <pre><code>if (a &gt; b) {
+    c = -c;
+    d = c * 3;
+} else {
+    d = 1024;
+}</code></pre>
+          </div>
+          <div>
+            <div class="col-label">Assembly</div>
+            <pre><code>movl  a,    %eax      <span class="cm"># %eax = a  (carrega lado esquerdo da comparacao)</span>
+cmpl  b,    %eax      <span class="cm"># compara: %eax - b  (src=b, dst=%eax)</span>
+jle   else_if         <span class="cm"># pula se NAO (a > b), ou seja, se a <= b</span>
+
+movl  c,    %eax      <span class="cm"># %eax = c</span>
+negl  %eax            <span class="cm"># %eax = -%eax  (unico operando: e src e dst)</span>
+movl  %eax, c         <span class="cm"># c = %eax</span>
+movl  c,    %r9d      <span class="cm"># %r9d = c</span>
+imull $3,   %r9d      <span class="cm"># %r9d = %r9d * 3  (src=$3 constante, dst=%r9d)</span>
+movl  %r9d, d         <span class="cm"># d = %r9d</span>
+jmp   end_if          <span class="cm"># OBRIGATORIO: pula o else para nao executar os dois</span>
+
+<span class="lbl">else_if:</span>
+movl  $1024, d        <span class="cm"># d = 1024  ($1024 constante escrita direto na global)</span>
+
+<span class="lbl">end_if:</span></code></pre>
+          </div>
+        </div>
+
+        <hr>
+        <h3>while</h3>
+        <div class="two-col">
+          <div>
+            <div class="col-label">C</div>
+            <pre><code>while (i &lt; 5) {
+    sum += nums[i];
+    i++;
+}</code></pre>
+          </div>
+          <div>
+            <div class="col-label">Assembly</div>
+            <pre><code><span class="lbl">begin_while:</span>
+cmpl  $5, %ecx
+jge   end_while     <span class="cm"># pula se NAO (i < 5)</span>
+
+<span class="cm"># bloco do while</span>
+...
+incl  %ecx
+jmp   begin_while
+
+<span class="lbl">end_while:</span></code></pre>
+          </div>
+        </div>
+
+        <hr>
+        <h3>for com um contador</h3>
+        <pre><code><span class="cm"># C: for (i = 0; i &lt; 4; i++)</span>
+movb  $0, %cl           <span class="cm"># char i = 0  (usa %cl para char)</span>
+<span class="lbl">for01:</span>
+cmpb  $4, %cl
+jge   endfor01
+<span class="cm"># bloco</span>
+incb  %cl               <span class="cm"># i++</span>
+jmp   for01
+<span class="lbl">endfor01:</span></code></pre>
+
+        <h3>for com dois contadores (converge para o centro)</h3>
+        <pre><code><span class="cm"># C: for (i = 0; i &lt; j; i++, j--)</span>
+movl  $4, %edx          <span class="cm"># int j = 4</span>
+movl  $0, %ecx          <span class="cm"># int i = 0</span>
+<span class="lbl">loop_for:</span>
+cmpl  %edx, %ecx        <span class="cm"># compara i com j</span>
+jge   end_for
+<span class="cm"># bloco</span>
+incl  %ecx              <span class="cm"># i++</span>
+decl  %edx              <span class="cm"># j--</span>
+jmp   loop_for
+<span class="lbl">end_for:</span></code></pre>
+
+        <h3>break dentro de while</h3>
+        <pre><code><span class="lbl">begin_while:</span>
+<span class="cm"># ...</span>
+    cmpl  $13, %edi
+    je    end_while    <span class="cm"># break = jmp incondicional para fim do loop</span>
+<span class="cm"># ...</span>
+    jmp   begin_while
+<span class="lbl">end_while:</span></code></pre>
+
+        <h3>if com OR ( || )</h3>
+        <p>Com OR, qualquer condicao verdadeira ja entra no bloco. O padrao e diferente do if simples:</p>
+        <ul>
+          <li><strong>1a condicao:</strong> se <strong>verdadeira</strong> &rarr; jump <strong>igual</strong> &rarr; vai direto ao bloco (short-circuit, nao avalia a 2a)</li>
+          <li><strong>2a condicao:</strong> se <strong>falsa</strong> &rarr; jump <strong>oposto</strong> &rarr; pula o bloco</li>
+        </ul>
+        <div class="two-col">
+          <div>
+            <div class="col-label">C</div>
+            <pre><code>if ((a == b) || (c < d)) {
+    a = c;
+}</code></pre>
+          </div>
+          <div>
+            <div class="col-label">Assembly</div>
+            <pre><code>cmpl  %ebx, %eax
+je    bloco       <span class="cm"># 1a cond VERDADEIRA -> vai pro bloco</span>
+cmpl  %edx, %ecx
+jge   after       <span class="cm"># 2a cond FALSA -> pula o bloco</span>
+<span class="lbl">bloco:</span>
+    movl  %ecx, %eax
+<span class="lbl">after:</span></code></pre>
+          </div>
+        </div>
+
+        <h3>if com AND ( &amp;&amp; )</h3>
+        <p>Com AND, todas as condicoes precisam ser verdadeiras. Qualquer uma sendo falsa ja pula o bloco. Todas usam jump oposto para <code>end_if</code>:</p>
+        <div class="two-col">
+          <div>
+            <div class="col-label">C</div>
+            <pre><code>if ((a == b) && (c < d)) {
+    a = c;
+}</code></pre>
+          </div>
+          <div>
+            <div class="col-label">Assembly</div>
+            <pre><code>cmpl  %ebx, %eax
+jne   end_if      <span class="cm"># 1a cond FALSA -> pula tudo</span>
+cmpl  %edx, %ecx
+jge   end_if      <span class="cm"># 2a cond FALSA -> pula tudo</span>
+<span class="cm"># bloco so executa se ambas forem verdadeiras</span>
+movl  %ecx, %eax
+<span class="lbl">end_if:</span></code></pre>
+          </div>
+        </div>
+
+        <div class="callout callout-yellow">
+          <strong>Resumo dos tres casos:</strong><br>
+          if simples &rarr; jump <strong>oposto</strong> para <code>end_if</code><br>
+          || (1a cond) &rarr; jump <strong>igual</strong> para <code>bloco</code> &nbsp;|&nbsp; || (2a cond) &rarr; jump <strong>oposto</strong> para <code>after</code><br>
+          &amp;&amp; (cada cond) &rarr; jump <strong>oposto</strong> para <code>end_if</code>
+        </div>
+
+        <h3>if aninhado com else</h3>
+        <pre><code><span class="cm"># if (a) {</span>
+cmpl  $0, a
+je    end_if1           <span class="cm"># pula tudo se a == 0</span>
+
+<span class="cm">#   if (b &lt; 5) {</span>
+cmpq  $5, b             <span class="cm"># b e long, entao cmpq</span>
+jge   else_if2          <span class="cm"># pula para else se b >= 5</span>
+
+<span class="cm">#     bloco if interno</span>
+...
+jmp   end_if2           <span class="cm"># OBRIGATORIO pular o else</span>
+
+<span class="lbl">else_if2:</span>
+<span class="cm">#     bloco else interno</span>
+...
+
+<span class="lbl">end_if2:</span>
+<span class="lbl">end_if1:</span></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ACESSANDO ARRAYS ===== -->
+  <div class="chapter" id="arrays">
+    <div class="chapter-header">
+      <div class="chapter-number">08</div>
+      <div>
+        <h2>Acessando Arrays</h2>
+        <p>Formula de offset, aritmetica de ponteiros, arrays de tipos diferentes</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Formula de acesso: Base + Indice * Tamanho <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <div class="callout callout-blue">
+          O processador nao conhece arrays. Todo acesso a <code>arr[i]</code> e calculado manualmente: <strong>endereco = &amp;arr + (i * sizeof(tipo))</strong>.
+        </div>
+        <pre><code><span class="cm"># Acesso generico a arr[i]:</span>
+<span class="cm">#  instrucao  src,      dst</span>
+movq   $arr,  %r8        <span class="cm"># %r8 = ENDERECO de arr  ($arr com $ = endereco da global)</span>
+movslq %ecx,  %r9        <span class="cm"># %r9 = (long)i           (indice SEMPRE em 64 bits para calculos)</span>
+imulq  $N,    %r9        <span class="cm"># %r9 = %r9 * N           ($N = tamanho do tipo em bytes)</span>
+addq   %r8,   %r9        <span class="cm"># %r9 = %r8 + %r9 = &arr[i]  (dois registradores: src=%r8, dst=%r9)</span>
+movX   (%r9), %reg       <span class="cm"># %reg = *r9              ((%r9) = vai ao endereco em %r9 e le)</span></code></pre>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tipo do array</th><th>N (bytes)</th><th>Diretiva .data</th><th>Instrucao de leitura</th></tr></thead>
+            <tbody>
+              <tr><td><code>char[]</code></td><td>1</td><td><code>.byte</code></td><td><code>movb (%r9), %al</code> &mdash; imulq pode ser omitido</td></tr>
+              <tr><td><code>short[]</code></td><td>2</td><td><code>.short</code></td><td><code>movw (%r9), %dx</code></td></tr>
+              <tr><td><code>int[]</code></td><td>4</td><td><code>.int</code></td><td><code>movl (%r9), %eax</code></td></tr>
+              <tr><td><code>long[]</code></td><td>8</td><td><code>.quad</code></td><td><code>movq (%r9), %rax</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Atalho com offset fixo</h3>
+        <pre><code><span class="cm"># arr[4] onde arr e long[] (4 * 8 = 32 bytes de offset)</span>
+movq  $arr, %rdi
+movq  32(%rdi), %rax    <span class="cm"># equivalente a arr[4] sem calcular o offset</span></code></pre>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn">Exemplos: loop com array + if/else + ponteiro <span class="accordion-icon">+</span></button>
+      <div class="accordion-content">
+        <h3>Percorrer array de short e comparar com max</h3>
+        <pre><code><span class="cm"># C:  for (i = 0; i &lt; 4; i++)  if (vet[i] &gt; max)  max = vet[i];</span>
+<span class="cm"># i eh char (usa %cl, %r9 precisa de movsbq)</span>
+movb  $0, %cl
+<span class="lbl">for01:</span>
+cmpb  $4, %cl
+jge   endfor01
+
+movq  $vet, %r8
+movsbq %cl, %r9          <span class="cm"># converte char para long para calculo</span>
+imulq  $2, %r9           <span class="cm"># short = 2 bytes</span>
+addq   %r8, %r9          <span class="cm"># r9 = &vet[i]</span>
+movw   (%r9), %dx        <span class="cm"># dx = vet[i]</span>
+
+cmpw  max, %dx
+jle   endif01            <span class="cm"># pula se vet[i] <= max</span>
+movw  %dx, max
+<span class="lbl">endif01:</span>
+incb  %cl
+jmp   for01
+<span class="lbl">endfor01:</span></code></pre>
+
+        <h3>Dois arrays de tipos diferentes com ponteiro</h3>
+        <pre><code><span class="cm"># C:  short *ptr = a;  while (i &lt; size) { ... ptr++; }</span>
+movq  $a, %rdx           <span class="cm"># ponteiro ptr no registrador</span>
+
+<span class="lbl">while01:</span>
+cmpl  size, %ecx         <span class="cm"># i &lt; size (size eh variavel global)</span>
+jge   endwhile01
+
+movw  (%rdx), %si        <span class="cm"># *ptr = valor apontado</span>
+<span class="cm"># ...</span>
+
+<span class="cm"># ptr++ em short* = avanca 2 bytes</span>
+addq  $2, %rdx
+
+incl  %ecx
+jmp   while01
+<span class="lbl">endwhile01:</span></code></pre>
+        <div class="callout callout-yellow">
+          <strong>Aritmetica de ponteiros:</strong> <code>ptr++</code> avanca 1 * sizeof(tipo) bytes. Para <code>short*</code>: +2. Para <code>int*</code>: +4. Para <code>long*</code>: +8.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn">Indice composto: arr[i+j] e arr1[arr2[i]] <span class="accordion-icon">+</span></button>
+      <div class="accordion-content">
+        <p>Quando o indice de um array nao e uma variavel simples, o calculo do endereco tem mais etapas. Dois padroes aparecem nas provas e labs:</p>
+
+        <h3>Padrao 1: indice eh uma soma de variaveis &mdash; arr[i + j]</h3>
+        <p>Primeiro calcule <code>i + j</code>, depois converta para 64 bits, depois multiplique pelo sizeof. Cuide os tipos: se i e int e j e short, converta j para int antes de somar.</p>
+        <pre><code><span class="cm"># C: v4[i + j] += expr;   (i=int, j=short, v4=long[])</span>
+
+<span class="cm"># Passo 1: calcular i + j como int</span>
+movswl  j, %r10d         <span class="cm"># r10d = (int)j  (promove short para int)</span>
+addl    i, %r10d         <span class="cm"># r10d = i + j</span>
+
+<span class="cm"># Passo 2: calcular &v4[i+j]</span>
+movq    $v4, %r8
+movslq  %r10d, %r9       <span class="cm"># r9 = (long)(i + j)  -- indice SEMPRE em 64 bits</span>
+imulq   $8, %r9          <span class="cm"># 8 bytes por long</span>
+addq    %r8, %r9         <span class="cm"># r9 = &v4[i+j]</span>
+
+<span class="cm"># Ler, operar e escrever via (%r9)</span>
+movq    (%r9), %rdi      <span class="cm"># rdi = v4[i+j]  (valor atual)</span>
+addq    %rax, %rdi       <span class="cm"># rdi += expr</span>
+movq    %rdi, (%r9)      <span class="cm"># v4[i+j] = rdi</span></code></pre>
+
+        <h3>Padrao 2: indice eh o valor de outro array &mdash; arr1[arr2[i]]</h3>
+        <p>Dois acessos encadeados: primeiro leia <code>arr2[i]</code> da memoria, depois use o valor lido como indice para <code>arr1</code>.</p>
+        <pre><code><span class="cm"># C: v1[v2[index]] = (int)value;   (v1=int*, v2=long*, index=long)</span>
+<span class="cm"># v1 em %rdi, v2 em %rsi, index em %rcx, value em %dl</span>
+
+<span class="cm"># Passo 1: calcular &v2[index] e ler o valor</span>
+movq    %rcx, %r8        <span class="cm"># r8 = index</span>
+imulq   $8, %r8          <span class="cm"># 8 bytes por long (tipo de v2)</span>
+addq    %rsi, %r8        <span class="cm"># r8 = &v2[index]</span>
+movq    (%r8), %r9       <span class="cm"># r9 = v2[index]  -- este sera o proximo indice</span>
+
+<span class="cm"># Passo 2: usar v2[index] como indice de v1</span>
+imulq   $4, %r9          <span class="cm"># 4 bytes por int (tipo de v1)</span>
+addq    %rdi, %r9        <span class="cm"># r9 = &v1[v2[index]]</span>
+
+<span class="cm"># Escrever no endereco calculado</span>
+movsbl  %dl, %r8d        <span class="cm"># r8d = (int)value  (cast char->int)</span>
+movl    %r8d, (%r9)      <span class="cm"># v1[v2[index]] = r8d</span></code></pre>
+
+        <div class="callout callout-red">
+          Em ambos os casos: o indice final precisa estar em 64 bits (movslq) antes do imulq. Nao pule essa conversao, mesmo que o valor ja seja positivo.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHAMADA DE FUNCAO ===== -->
+  <div class="chapter" id="funcoes">
+    <div class="chapter-header">
+      <div class="chapter-number">09</div>
+      <div>
+        <h2>Chamada de Funcao (System V ABI)</h2>
+        <p>Pilha, call/ret, passagem de parametros, retorno, printf, passagem por referencia, salvamento de registradores</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">A pilha (stack) &mdash; como funciona <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>A pilha e uma regiao de memoria usada para guardar dados temporarios durante a execucao de funcoes. Ela cresce <strong>para baixo</strong>: enderecos maiores sao o "fundo" e enderecos menores sao o "topo".</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Registrador</th><th>Nome</th><th>Funcao</th></tr></thead>
+            <tbody>
+              <tr><td><code>%rsp</code></td><td>Stack Pointer</td><td>Aponta sempre para o <strong>topo atual</strong> da pilha (o ultimo valor empilhado). Atualizado automaticamente por push/pop e manualmente por subq/addq</td></tr>
+              <tr><td><code>%rbp</code></td><td>Base Pointer</td><td>Aponta para a <strong>base do frame atual</strong>. Fixo durante a execucao da funcao. Serve de referencia para acessar variaveis locais e parametros via offset negativo (<code>-8(%rbp)</code>, <code>-16(%rbp)</code>...)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>pushq e popq</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>O que faz</th><th>Equivalente manual</th></tr></thead>
+            <tbody>
+              <tr><td><code>pushq %reg</code></td><td>Empilha: decrementa %rsp em 8 e escreve o valor no novo topo</td><td><code>subq $8, %rsp</code> + <code>movq %reg, (%rsp)</code></td></tr>
+              <tr><td><code>popq %reg</code></td><td>Desempilha: le o topo para o registrador e incrementa %rsp em 8</td><td><code>movq (%rsp), %reg</code> + <code>addq $8, %rsp</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Prologo e epilogo: montando o frame da funcao</h3>
+        <p>Toda funcao comeca com um <strong>prologo</strong> que cria seu frame na pilha e termina com um <strong>epilogo</strong> que desfaz tudo:</p>
+        <div class="two-col">
+          <div>
+            <div class="col-label">Prologo (inicio da funcao)</div>
+            <pre><code>pushq  %rbp          <span class="cm"># salva %rbp do caller na pilha</span>
+movq   %rsp, %rbp    <span class="cm"># %rbp agora aponta para o topo atual</span>
+subq   $N,   %rsp    <span class="cm"># reserva N bytes para variaveis locais</span>
+                     <span class="cm"># (so necessario se houver variaveis locais ou calls)</span></code></pre>
+          </div>
+          <div>
+            <div class="col-label">Epilogo (fim da funcao)</div>
+            <pre><code>leave                <span class="cm"># equivale a: movq %rbp, %rsp + popq %rbp</span>
+                     <span class="cm"># desfaz tudo que o prologo fez</span>
+ret                  <span class="cm"># volta para o caller (ver proximo topico)</span></code></pre>
+          </div>
+        </div>
+
+        <h3>Layout da pilha durante uma funcao</h3>
+        <pre><code><span class="cm"># Enderecos crescem para CIMA, pilha cresce para BAIXO</span>
+<span class="cm">#</span>
+<span class="cm">#  Endereco alto  ──────────────────────</span>
+<span class="cm">#                  ...caller frame...  </span>
+<span class="cm">#                 ──────────────────────  <- %rbp do caller (salvo pelo pushq)</span>
+<span class="cm">#  -8(%rbp)        variavel local 1      </span>
+<span class="cm"># -16(%rbp)        variavel local 2      </span>
+<span class="cm"># -24(%rbp)        variavel local 3      </span>
+<span class="cm"># -32(%rbp)        variavel local 4      <- %rsp aponta aqui (apos subq $32)</span>
+<span class="cm">#  Endereco baixo  ──────────────────────</span></code></pre>
+        <div class="callout callout-yellow">
+          O <code>subq $N, %rsp</code> do prologo define quantos bytes de espaco existem na pilha para salvar variaveis. N deve ser <strong>multiplo de 16</strong> para alinhamento correto (na pratica: conte quantos registradores vai salvar, multiplique por 8, arredonde para multiplo de 16).
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">call e ret &mdash; o que acontece nos bastidores <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>Quando o processador executa um <code>call</code> ou <code>ret</code>, ele manipula a pilha automaticamente:</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrucao</th><th>O que o processador faz automaticamente</th></tr></thead>
+            <tbody>
+              <tr><td><code>call funcao</code></td><td>1. Empilha o <strong>endereco de retorno</strong> (endereco da instrucao seguinte ao call) com <code>pushq</code><br>2. Salta para o inicio de <code>funcao</code></td></tr>
+              <tr><td><code>ret</code></td><td>1. Desempilha o endereco de retorno com <code>popq</code><br>2. Salta de volta para esse endereco (linha seguinte ao call no caller)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Sequencia completa de uma chamada</h3>
+        <pre><code><span class="cm"># === NO CALLER (quem chama) ===</span>
+movl   i,    %edi       <span class="cm"># 1. carrega argumentos nos registradores</span>
+movw   v,    %si
+call   process          <span class="cm"># 2. push endereco de retorno + jmp process</span>
+movl   %eax, resultado  <span class="cm"># 4. execucao volta aqui; retorno esta em %eax</span>
+
+<span class="cm"># === NA FUNCAO CHAMADA (process) ===</span>
+<span class="lbl">process:</span>
+    pushq  %rbp          <span class="cm"># 3a. prologo: monta o frame</span>
+    movq   %rsp, %rbp
+    <span class="cm"># ... corpo da funcao ...</span>
+    movl   %ecx, %eax    <span class="cm"># 3b. coloca retorno em %eax</span>
+    leave                <span class="cm"># 3c. epilogo: desfaz o frame</span>
+    ret                  <span class="cm"># 3d. pop endereco de retorno + jmp de volta</span></code></pre>
+
+        <div class="callout callout-red">
+          Apos o <code>ret</code>, o <code>%rsp</code> volta exatamente ao valor que tinha antes do <code>call</code>. Por isso e fundamental que o prologo e epilogo sejam simetricos: tudo que foi empilhado deve ser desempilhado antes do <code>ret</code>.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Passagem de parametros e retorno <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <div class="callout callout-blue">
+          Os primeiros 6 argumentos vao em registradores. O tamanho do registrador deve corresponder ao tipo do parametro no C, nao ao tipo do caller.
+        </div>
+
+        <h3>Tabela de registradores por posicao do parametro</h3>
+        <p>Convencao System V AMD64 (Linux). A posicao do parametro define o registrador base; o tamanho do registrador depende do tipo do parametro na assinatura da funcao chamada.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Parametro</th><th>64 bits</th><th>32 bits</th><th>16 bits</th><th>8 bits</th></tr></thead>
+            <tbody>
+              <tr><td>1o</td><td><code>%rdi</code></td><td><code>%edi</code></td><td><code>%di</code></td><td><code>%dil</code></td></tr>
+              <tr><td>2o</td><td><code>%rsi</code></td><td><code>%esi</code></td><td><code>%si</code></td><td><code>%sil</code></td></tr>
+              <tr><td>3o</td><td><code>%rdx</code></td><td><code>%edx</code></td><td><code>%dx</code></td><td><code>%dl</code></td></tr>
+              <tr><td>4o</td><td><code>%rcx</code></td><td><code>%ecx</code></td><td><code>%cx</code></td><td><code>%cl</code></td></tr>
+              <tr><td>5o</td><td><code>%r8</code></td><td><code>%r8d</code></td><td><code>%r8w</code></td><td><code>%r8b</code></td></tr>
+              <tr><td>6o</td><td><code>%r9</code></td><td><code>%r9d</code></td><td><code>%r9w</code></td><td><code>%r9b</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-yellow">
+          A ordem dos registradores (<code>rdi, rsi, rdx, rcx, r8, r9</code>) parece fora de sequencia alfabetica de proposito: a convencao foi desenhada para que os registradores ja usados pelo processador em outras instrucoes (ex: <code>rdx</code> na divisao, <code>rcx</code> em contadores) fiquem nas posicoes onde menos atrapalham. Decora visualmente: <strong>DI, SI, DX, CX, R8, R9</strong>.
+        </div>
+
+        <h3>Valor de retorno: sempre em %rax</h3>
+        <p>Na convencao C para Linux/AMD64, o retorno inteiro (incluindo ponteiros) e <strong>sempre devolvido em <code>%rax</code></strong>, ou em uma das suas versoes menores conforme o tipo:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tipo retornado</th><th>Registrador usado</th></tr></thead>
+            <tbody>
+              <tr><td><code>long</code> / ponteiro (64 bits)</td><td><code>%rax</code></td></tr>
+              <tr><td><code>int</code> (32 bits)</td><td><code>%eax</code></td></tr>
+              <tr><td><code>short</code> (16 bits)</td><td><code>%ax</code></td></tr>
+              <tr><td><code>char</code> (8 bits)</td><td><code>%al</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-blue">
+          Para retornar um valor: <code>movX origem, %Xax</code> antes de <code>leave</code> + <code>ret</code>. Para capturar o retorno apos um <code>call</code>: o valor ja esta em <code>%rax</code>/<code>%eax</code>/<code>%ax</code>/<code>%al</code>, basta usar.
+        </div>
+
+        <h3>Exemplo com tipos mistos</h3>
+        <pre><code><span class="cm"># C: val = sum("Hello", val, age, &r);</span>
+<span class="cm"># int sum(const char *prefix, int v1, short v2, int *s)</span>
+<span class="cm">#  instrucao  src,      dst        explicacao</span>
+movq  $str01, %rdi       <span class="cm"># 1o param: $str01 = ENDERECO da string -> reg 64 bits (ponteiro)</span>
+movl  val,    %esi       <span class="cm"># 2o param: val sem $ = VALOR de val (int) -> %esi (32 bits)</span>
+movw  age,    %dx        <span class="cm"># 3o param: age sem $ = VALOR de age (short) -> %dx (16 bits)</span>
+movq  $r,     %rcx       <span class="cm"># 4o param: $r = ENDERECO de r (int*) -> %rcx (64 bits, ponteiro)</span>
+call  sum                <span class="cm"># chama; retorno fica automaticamente em %eax (int)</span>
+movl  %eax,   val        <span class="cm"># val = retorno   (%eax src -> global val dst)</span></code></pre>
+
+        <h3>Parametros char</h3>
+        <pre><code><span class="cm"># C: int ret = maximo(a, b);  (char a, char b)</span>
+movb  a, %dil            <span class="cm"># char = %dil (8 bits)</span>
+movb  b, %sil            <span class="cm"># char = %sil (8 bits)</span>
+call  maximo
+movl  %eax, %ecx         <span class="cm"># retorno int em %eax, salvar em %ecx</span></code></pre>
+
+        <h3>printf e funcoes variadicas</h3>
+        <pre><code><span class="cm"># REGRA: sempre movl $0, %eax antes de chamar printf</span>
+<span class="cm"># Indica que nao ha parametros de ponto flutuante</span>
+
+<span class="cm"># printf("i = %d, sum = %d\n", i, (int)v)</span>
+movq   $fmt, %rdi        <span class="cm"># 1o: ponteiro para string de formato</span>
+movl   i, %esi           <span class="cm"># 2o: int i</span>
+movswl v, %edx           <span class="cm"># 3o: (int)v (promove short para int)</span>
+movl   $0, %eax          <span class="cm"># OBRIGATORIO para printf</span>
+call   printf</code></pre>
+
+        <h3>Como alterar o valor dos registradores ao chamar outra funcao</h3>
+        <p>Antes do <code>call</code>, voce precisa <strong>recarregar</strong> os registradores de argumento com os valores que a funcao chamada espera, mesmo que eles ja contenham os parametros da funcao atual. Cada call sobrescreve <code>%rdi, %rsi, %rdx, %rcx, %r8, %r9</code> com os argumentos novos.</p>
+        <pre><code><span class="cm"># Funcao atual: int soma(int a, int b)</span>
+<span class="cm"># a chegou em %edi, b chegou em %esi</span>
+<span class="cm"># Precisa chamar: printf("%d\n", a + b)</span>
+
+addl   %esi, %edi        <span class="cm"># %edi = a + b   (sobrescrevi o 1o param)</span>
+movl   %edi, %esi        <span class="cm"># move o resultado para a posicao do 2o arg do printf</span>
+movq   $fmt, %rdi        <span class="cm"># 1o arg do printf: string de formato (sobrescreve a)</span>
+movl   $0,   %eax
+call   printf</code></pre>
+        <div class="callout callout-red">
+          <strong>Por que precisa fazer isso:</strong> a CPU nao sabe quem e parametro de quem. Os registradores <code>%rdi, %rsi, %rdx, %rcx, %r8, %r9</code> sao o "canal" pelo qual qualquer funcao recebe seus argumentos. Quando voce chama outra funcao, ela vai ler esses mesmos registradores. Se voce nao reorganizar os valores antes do <code>call</code>, a funcao chamada vai receber lixo (os valores da funcao atual no lugar dos que ela esperava).
+        </div>
+        <div class="callout callout-yellow">
+          <strong>E os valores da funcao atual que ainda preciso depois do call?</strong> Apos qualquer <code>call</code>, assuma que <code>%rax, %rcx, %rdx, %rdi, %rsi, %r8, %r9, %r10, %r11</code> foram destruidos pela funcao chamada. Se algum desses guardava uma variavel local que voce vai usar apos o call, <strong>salve na pilha antes</strong> (<code>movq %reg, -N(%rbp)</code>) e <strong>restaure depois</strong>. Detalhes no proximo accordion.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Passagem por referencia (ponteiros) <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <pre><code><span class="cm"># C: process(i, v, &amp;vetB[i]);</span>
+<span class="cm"># void process(int x, short v, int *pos)</span>
+
+<span class="cm"># Calcula endereco de vetB[i]</span>
+movq   $vetB, %r8
+movslq i, %r9
+imulq  $4, %r9
+addq   %r8, %r9          <span class="cm"># r9 = &amp;vetB[i]</span>
+
+movl   i, %edi           <span class="cm"># 1o param: int x</span>
+movw   v, %si            <span class="cm"># 2o param: short v</span>
+movq   %r9, %rdx         <span class="cm"># 3o param: int* (endereco = 64 bits)</span>
+call   process</code></pre>
+        <div class="callout callout-yellow">
+          Passar por referencia = passar o ENDERECO (<code>$variavel</code> ou endereco calculado de array). Sempre 64 bits porque e um ponteiro.
+        </div>
+        <h3>Ler e escrever via ponteiro recebido como parametro</h3>
+        <pre><code><span class="cm"># C: *s = v1 + v2;  (s chegou em %rcx como int*)</span>
+movl   %esi, %eax        <span class="cm"># eax = v1</span>
+addl   %edx, %eax        <span class="cm"># eax = v1 + v2</span>
+movl   %eax, (%rcx)      <span class="cm"># *s = resultado  (escreve no endereco)</span></code></pre>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn">Como salvar e restaurar registradores antes de um call <span class="accordion-icon">+</span></button>
+      <div class="accordion-content">
+        <div class="callout callout-red">
+          Registradores de argumento (%rdi, %rsi, %rdx, %rcx, %r8, %r9) e %rax, %r10, %r11 podem ser <strong>destruidos</strong> por qualquer chamada de funcao. Se voce tem variaveis locais nesses registradores que precisam sobreviver apos o <code>call</code>, salve-as na pilha antes e restaure depois.
+        </div>
+        <p>Variaveis globais nao precisam ser salvas: basta reler da memoria apos o call. O padrao se aplica a <strong>variaveis locais armazenadas em registradores</strong>.</p>
+
+        <h3>Passo a passo</h3>
+        <ol>
+          <li>No <strong>prologo</strong> da funcao (logo apos <code>movq %rsp, %rbp</code>): reserve espaco na pilha com <code>subq $N, %rsp</code>, onde N = (numero de registradores a salvar) &times; 8</li>
+          <li><strong>Antes de cada call</strong>: mova cada registrador local para sua posicao na pilha</li>
+          <li>Configure os argumentos do call nos registradores corretos</li>
+          <li>Execute o <code>call</code></li>
+          <li><strong>Apos o call</strong>: restaure os registradores da pilha de volta</li>
+          <li>Capture o retorno de <code>%rax</code> (se houver)</li>
+        </ol>
+
+        <div class="two-col">
+          <div>
+            <div class="col-label">C</div>
+            <pre><code>long process(int stamp, long limit, char base) {
+    int i;
+    for (i = 7; i >= 0; i--) {
+        if (stamp > values[i])
+            limit = (2*limit) + aux((short)i, values + i);
+        else
+            printf("%d, %ld\n", stamp, limit);
+    }
+    return limit;
+}</code></pre>
+          </div>
+          <div>
+            <div class="col-label">Assembly (estrutura de save/restore)</div>
+            <pre><code><span class="lbl">process:</span>
+    pushq   %rbp
+    movq    %rsp, %rbp
+    <span class="cm"># 4 regs x 8 = 32 bytes</span>
+    subq    $32, %rsp
+
+    <span class="cm"># variaveis: stamp=%edi, limit=%rsi, i=%ecx</span>
+    movl    $7, %ecx
+
+<span class="lbl">begin_for:</span>
+    cmpl    $0, %ecx
+    jl      end_for
+
+    <span class="cm"># ... calcular values[i], comparar ...</span>
+
+    <span class="cm"># === ANTES DE CHAMAR aux() ===</span>
+    movq    %rdi, -8(%rbp)    <span class="cm"># salva stamp</span>
+    movq    %rsi, -16(%rbp)   <span class="cm"># salva limit</span>
+    movq    %rcx, -24(%rbp)   <span class="cm"># salva i</span>
+    movq    %r11, -32(%rbp)   <span class="cm"># salva r11</span>
+
+    <span class="cm"># carrega params de aux e chama</span>
+    movw    %cx, %di
+    movq    $values, %rsi
+    <span class="cm">... (calculo do endereco) ...</span>
+    call    aux
+
+    <span class="cm"># === APOS O CALL ===</span>
+    movq    -8(%rbp), %rdi    <span class="cm"># restaura stamp</span>
+    movq    -16(%rbp), %rsi   <span class="cm"># restaura limit</span>
+    movq    -24(%rbp), %rcx   <span class="cm"># restaura i</span>
+    movq    -32(%rbp), %r11   <span class="cm"># restaura r11</span>
+
+    <span class="cm"># retorno de aux esta em %rax</span>
+    addq    %rax, %r11        <span class="cm"># r11 = (2*limit) + aux(...)</span>
+    movq    %r11, %rsi        <span class="cm"># limit = r11</span></code></pre>
+          </div>
+        </div>
+
+        <div class="callout callout-yellow">
+          <strong>Posicoes na pilha:</strong> o primeiro registrador salvo vai em <code>-8(%rbp)</code>, o segundo em <code>-16(%rbp)</code>, e assim por diante (sempre multiplos de 8). O <code>subq $N, %rsp</code> no prologo precisa ser grande o suficiente para cobrir todas as posicoes usadas &mdash; N = maior offset usado (ex: se usar ate <code>-32(%rbp)</code>, N deve ser pelo menos 32).
+        </div>
+        <div class="callout callout-blue">
+          Quando a funcao usa <strong>variaveis globais</strong> (lidas e escritas direto da memoria), o save/restore pode ser omitido: basta reler a global apos o call com o <code>movX variavel, %reg</code> normal.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn">Ler variaveis globais dentro de funcao <span class="accordion-icon">+</span></button>
+      <div class="accordion-content">
+        <pre><code><span class="cm"># C: index = complex(max, lim, v1);</span>
+<span class="cm"># long complex(int i, short j, int *v)</span>
+<span class="cm"># max e lim sao variaveis globais</span>
+
+movl  max, %edi          <span class="cm"># 1o: int max  (le o VALOR da global)</span>
+movw  lim, %si           <span class="cm"># 2o: short lim</span>
+movq  %rdi, %rdx         <span class="cm"># 3o: int* (ponteiro que ja estava em %rdi)</span>
+call  complex
+movq  %rax, %rcx         <span class="cm"># salva retorno long em %rcx</span></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PADRAO DA PROVA ===== -->
+  <div class="chapter" id="padrao">
+    <div class="chapter-header">
+      <div class="chapter-number">10</div>
+      <div>
+        <h2>Padrao da Prova &mdash; O que sempre cai</h2>
+        <p>Formato das questoes, ordem de traducao, checklist e exemplo</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Como traduzir C para Assembly &mdash; ordem e processo <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <div class="callout callout-blue">
+          Siga sempre esta ordem. Nao tente traduzir linha a linha direto: primeiro estruture o arquivo, depois traduza cada bloco.
+        </div>
+
+        <h3>Passo 1 &mdash; Declarar variaveis globais (.data e .rodata)</h3>
+        <p>Antes de qualquer codigo, declare tudo que esta fora de funcoes no C.</p>
+        <ul>
+          <li>Para cada variavel global: <code>.globl nome</code> + <code>.align N</code> + diretiva com valor</li>
+          <li>Arrays: mesma diretiva do elemento, valores separados por virgula</li>
+          <li>Strings de formato do printf: em <code>.section .rodata</code>, antes do <code>.data</code></li>
+          <li>Alinhamento: char=1, short=2, int=4, long=8. Array usa o alinhamento do elemento.</li>
+        </ul>
+        <pre><code><span class="cm"># C: char c = 3;  short arr[3] = {1,2,3};  (printf usa "%d\n")</span>
+    .section .rodata
+fmt: .string "%d\n"
+
+    .data
+    .globl  c
+    .align  1
+c:  .byte   3
+
+    .globl  arr
+    .align  2
+arr: .short 1, 2, 3</code></pre>
+
+        <h3>Passo 2 &mdash; Abrir a funcao (.text + prologo)</h3>
+        <p>Para cada funcao no C, escreva o cabecalho em Assembly:</p>
+        <pre><code>    .text
+    .globl  nome_da_funcao
+<span class="lbl">nome_da_funcao:</span>
+    pushq   %rbp
+    movq    %rsp, %rbp</code></pre>
+        <div class="callout callout-yellow">
+          Se a funcao vai chamar outras funcoes (call), adicione <code>subq $N, %rsp</code> logo apos o prologo para reservar espaco para salvar registradores. N = numero de registradores a salvar * 8. Ex: 4 registradores = <code>subq $32, %rsp</code>.
+        </div>
+
+        <h3>Passo 3 &mdash; Mapear variaveis locais a registradores</h3>
+        <p>Cada variavel local do C precisa de um registrador. Escolha e anote em comentario.</p>
+        <pre><code><span class="cm"># int i  -> %ecx     (int = 32 bits = registrador E__)</span>
+<span class="cm"># short j -> %dx      (short = 16 bits = registrador _X)</span>
+<span class="cm"># long *ptr -> %r8    (ponteiro = 64 bits = registrador R__)</span></code></pre>
+        <div class="callout callout-blue">
+          Parametros chegam automaticamente: 1o param em %rdi/%edi/%di/%dil (depende do tipo), 2o em %rsi, 3o em %rdx, 4o em %rcx. Se voce usar %rcx para outra coisa, salve o 4o param em outro registrador primeiro.
+        </div>
+
+        <h3>Passo 4 &mdash; Traduzir cada linha na ordem</h3>
+        <p>Identifique o tipo de cada linha C e aplique o padrao correspondente:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tipo de linha C</th><th>O que fazer</th></tr></thead>
+            <tbody>
+              <tr><td><code>x = valor</code> (atribuicao simples)</td><td>movX $valor, destino (ou via registrador se mem->mem)</td></tr>
+              <tr><td><code>x = y</code> (copia, mesmo tipo)</td><td>movX y, %reg &rarr; movX %reg, x</td></tr>
+              <tr><td><code>x = (tipo)y</code> (cast)</td><td>Escolher movsbl/movswl/movslq/movzbl conforme tipos origem e destino</td></tr>
+              <tr><td><code>x = a + b * c</code> (expressao)</td><td>Traduzir sub-expressoes da mais interna para fora, usando registradores intermediarios</td></tr>
+              <tr><td><code>arr[i]</code> (acesso a array)</td><td>base + movslq(i) * sizeof &rarr; (%r9)</td></tr>
+              <tr><td><code>if (cond)</code></td><td>cmpX + jump OPOSTO a cond &rarr; end_if</td></tr>
+              <tr><td><code>while / for</code></td><td>label begin + cmpX + jump oposto &rarr; end + bloco + jmp begin + label end</td></tr>
+              <tr><td><code>func(a, b)</code> (chamada)</td><td>Salvar regs, carregar params nos regs corretos, call func, restaurar regs, capturar retorno de %rax</td></tr>
+              <tr><td><code>return x</code></td><td>movX x, %rax (ou %eax para int) &rarr; leave &rarr; ret</td></tr>
+              <tr><td><code>break</code></td><td>jmp end_while / jmp end_for</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Passo 5 &mdash; Fechar a funcao (epilogo)</h3>
+        <pre><code">    leave
+    ret</code></pre>
+
+        <h3>Regras que nunca mudam</h3>
+        <ul>
+          <li><strong>Mem &rarr; Mem e proibido:</strong> sempre use um registrador intermediario. <code>movl j, %eax</code> + <code>movl %eax, i</code></li>
+          <li><strong>Indice de array sempre em 64 bits:</strong> <code>movslq %ecx, %r9</code> antes do <code>imulq</code></li>
+          <li><strong>Cast antes de operar:</strong> se os tipos sao diferentes, converta primeiro, depois opere</li>
+          <li><strong>Sufixo da instrucao = tamanho do dado:</strong> b=byte(char), w=word(short), l=long(int), q=quad(long)</li>
+          <li><strong>AT&amp;T e invertido:</strong> <code>addl src, dst</code> significa dst = dst + src</li>
+          <li><strong>$var = endereco, var = valor:</strong> <code>movq $arr, %r8</code> carrega o endereco; <code>movq arr, %rax</code> carrega o conteudo</li>
+          <li><strong>(%r9) = desreferencia:</strong> parenteses significam "va ate o endereco guardado nesse registrador"</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Formato baseado nas provas 2022 e 2025 <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <p>Sempre 2 questoes, ambas do tipo: <em>"Traduza o codigo C abaixo para Assembly, o mais literal possivel. Comente seu codigo."</em></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Questao</th><th>Pontos</th><th>Complexidade</th><th>O que costuma ter</th></tr></thead>
+            <tbody>
+              <tr><td>Q1</td><td>4 pts</td><td>Media</td><td>1 funcao, variaveis globais de tipos mistos, if/else, casts, acesso a array global</td></tr>
+              <tr><td>Q2</td><td>6 pts</td><td>Alta</td><td>2-3 funcoes, for/while aninhados, multiplos arrays, chamadas de funcao com tipos diferentes, ponteiros, XOR/shifts</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-blue">
+          A instrucao no cabecalho da prova diz: <em>"siga as regras de alinhamento de memoria e armazenamento de array, estrutura e uniao da linguagem de C em Linux na plataforma AMD64 (little-endian), com visto em aula."</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn active">Checklist antes de entregar <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+        <ul>
+          <li><strong>.data correta:</strong> toda variavel global com .globl, .align correto e diretiva certa (.byte/.short/.int/.quad)</li>
+          <li><strong>Alinhamento de array:</strong> igual ao sizeof do elemento, nao do array inteiro</li>
+          <li><strong>Strings de formato:</strong> em .section .rodata, nao em .data</li>
+          <li><strong>Prologo/epilogo:</strong> pushq %rbp / movq %rsp, %rbp / leave / ret em toda funcao</li>
+          <li><strong>Tamanho do registrador:</strong> combina com o tipo C do parametro ou variavel (char=%cl, short=%cx, int=%ecx, long=%rcx)</li>
+          <li><strong>Cast correto:</strong> movsbl (char&rarr;int), movswl (short&rarr;int), movslq (int&rarr;long) &mdash; usar a instrucao certa, nao movl simples</li>
+          <li><strong>Acesso a array:</strong> indice sempre com movslq para 64 bits antes do imulq</li>
+          <li><strong>Logica invertida:</strong> condicao do if no C &rarr; jump oposto em Assembly</li>
+          <li><strong>jmp antes do else:</strong> obrigatorio para nao cair no bloco else apos executar o if</li>
+          <li><strong>movl $0, %eax:</strong> obrigatorio antes de chamar printf (e qualquer funcao variadica)</li>
+          <li><strong>Passagem por referencia:</strong> usar 64 bits (%rdx, %rsi etc.) porque e um ponteiro</li>
+          <li><strong>Save/restore de registradores:</strong> se a funcao tem variaveis locais em registradores e faz calls internos, usar <code>subq $N, %rsp</code> no prologo + <code>movq %reg, -N(%rbp)</code> antes de cada call + restaurar depois</li>
+          <li><strong>Comentarios:</strong> o enunciado sempre cobra. Comentar o que cada bloco faz</li>
+          <li><strong>Divisao:</strong> cdq (int) ou cqo (long) antes de idivl/idivq. Quociente em %eax/%rax, resto em %edx/%rdx</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-btn">Exemplo da Prova 2 (2025) -- Q1 resumida <span class="accordion-icon">+</span></button>
+      <div class="accordion-content">
+        <pre><code><span class="cm">/*  C:
+    int init_complement();
+    char  bias = 3;
+    short max = 1024;
+    long  complement[4] = {0,0,0,0};
+
+    void auxiliar() {
+        int range = init_complement();  // chama funcao, retorno int
+        if (range &lt; max) {             // compara int com short
+            complement[range]++;
+            if (range) {               // if (range != 0)
+                bias = (char)(range * max);
+                range = (int)(bias >> 3);
+            }
+        } else {
+            complement[bias] = (long)max;  // cast short -> long
+        }
+    }
+*/</span>
+
+    .data
+    .globl  bias
+    .align  1
+bias:   .byte   3
+
+    .globl  max
+    .align  2
+max:    .short  1024
+
+    .globl  complement
+    .align  8
+complement: .quad 0, 0, 0, 0
+
+    .text
+    .globl  auxiliar
+<span class="lbl">auxiliar:</span>
+    pushq   %rbp
+    movq    %rsp, %rbp
+    subq    $8, %rsp         <span class="cm"># espaco para salvar %rdi se precisar</span>
+
+    <span class="cm"># int range = init_complement();</span>
+    movl    $0, %eax
+    call    init_complement
+    movl    %eax, %ecx       <span class="cm"># ecx = range (int)</span>
+
+    <span class="cm"># if (range &lt; max)  --  compara int com short (promove max para int)</span>
+    movswl  max, %r8d        <span class="cm"># r8d = (int)max</span>
+    cmpl    %r8d, %ecx       <span class="cm"># ecx (range) vs r8d (max)</span>
+    jge     else_if1         <span class="cm"># pula se range >= max</span>
+
+    <span class="cm"># complement[range]++</span>
+    movq    $complement, %r9
+    movslq  %ecx, %r10
+    imulq   $8, %r10
+    addq    %r9, %r10
+    movq    (%r10), %r11
+    incq    %r11
+    movq    %r11, (%r10)
+
+    <span class="cm"># if (range)  --  equivale a if (range != 0)</span>
+    cmpl    $0, %ecx
+    je      end_if2
+
+    <span class="cm"># bias = (char)(range * max);</span>
+    movswl  max, %r8d
+    imull   %ecx, %r8d       <span class="cm"># r8d = range * max (int)</span>
+    movb    %r8b, bias       <span class="cm"># truncamento int -> char</span>
+
+    <span class="cm"># range = (int)(bias >> 3);  --  bias e char (sinal), usa sarb</span>
+    movsbl  bias, %r8d       <span class="cm"># r8d = (int)bias</span>
+    sarl    $3, %r8d         <span class="cm"># shift aritmetico (com sinal)</span>
+    movl    %r8d, %ecx       <span class="cm"># range = resultado</span>
+
+<span class="lbl">end_if2:</span>
+    jmp     end_if1
+
+<span class="lbl">else_if1:</span>
+    <span class="cm"># complement[bias] = (long)max;  --  bias e char, max e short</span>
+    movsbl  bias, %r8d       <span class="cm"># r8d = (int)bias (indice)</span>
+    movq    $complement, %r9
+    movslq  %r8d, %r10
+    imulq   $8, %r10
+    addq    %r9, %r10        <span class="cm"># r10 = &complement[bias]</span>
+    movswq  max, %r11        <span class="cm"># r11 = (long)max</span>
+    movq    %r11, (%r10)     <span class="cm"># complement[bias] = (long)max</span>
+
+<span class="lbl">end_if1:</span>
+    leave
+    ret</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GABARITOS PROVAS ANTIGAS ===== -->
+  <div class="chapter" id="gabaritos">
+    <div class="chapter-header">
+      <div class="chapter-number">11</div>
+      <div>
+        <h2>Provas Antigas 2022 e 2025 &mdash; Gabaritos Comentados</h2>
+        <p>2022: transcricao fiel do gabarito do professor + explicacao de cada ponto. 2025: minha resolucao + explicacao de cada decisao.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-blue" style="margin-bottom:24px">
+      <strong>Prova 2022:</strong> o gabarito foi entregue pelo professor. As respostas abaixo sao transcricoes fieis do gabarito oficial, preservando os comentarios curtos que o professor escreveu (e ate alguns pequenos erros de digitacao). Depois de cada codigo ha uma secao explicando o porque de cada ponto.<br>
+      <strong>Prova 2025:</strong> sem gabarito oficial. As respostas abaixo sao minha resolucao seguindo as mesmas convencoes do professor na prova de 2022, com explicacao de cada decisao.
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- PROVA 2022 - Q1                                          -->
+    <!-- ======================================================= -->
+    <div class="accordion">
+      <button class="accordion-btn active">Prova 2022 &mdash; Q1 (3,5 pts) &mdash; Gabarito do professor <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+
+        <h3>Enunciado</h3>
+        <p>Traduza o codigo C abaixo para Assembly, o mais literal possivel. Comente seu codigo. Se houver pilha, desenhe indicando os elementos e as posicoes.</p>
+
+        <pre><code>int values[8] = {10, 20, 10, 40, 20, 50, 30, 10};
+
+long aux(short size, int *slice);
+
+long process(int stamp, long limit, char base) {
+    int i;
+    for (i = 7; i >= 0; i--) {
+        if (stamp > values[i])
+            limit = (2 * limit) + aux((short)i, (values + i));
+        else
+            printf("%d, %ld\n", stamp, limit);
+    }
+    return limit;
+}</code></pre>
+
+        <h3>Gabarito do professor (transcricao fiel)</h3>
+        <pre><code>    .section .rodata
+fmt:    .string "%d, %ld\n"
+
+<span class="cm">#------------------------------------------------</span>
+    .data
+
+    .globl  values
+    .align  4
+values: .int    10, 20, 10, 40, 20, 50, 30, 10
+
+<span class="cm">#------------------------------------------------</span>
+    .text
+
+    .globl  process
+<span class="lbl">process:</span>
+    pushq   %rbp
+    movq    %rsp, %rbp
+
+    subq    $32, %rsp
+
+    <span class="cm"># int i;
+    # i -> ecx
+
+    # for (i = 7; i >= 0; i--) {</span>
+    movl    $7, %ecx
+<span class="lbl">begin_for:</span>
+    cmpl    $0, %ecx
+    jl      end_for
+
+    <span class="cm"># values[i]</span>
+    movq    $values, %r8
+    movslq  %ecx, %r9
+    imulq   $4, %r9
+    addq    %r8, %r9
+    movl    (%r9), %r8d             <span class="cm"># r8d = values[i]</span>
+
+    <span class="cm"># if (stamp > values[i])</span>
+    cmpl    %r8d, %edi
+    jle     else_if
+
+    <span class="cm"># (2*limit)</span>
+    movq    %rsi, %r11
+    imulq   $2, %r11                <span class="cm"># r11 = (2*limit)</span>
+
+    <span class="cm"># Salva registradores</span>
+    movq    %rdi,  -8(%rbp)
+    movq    %rsi, -16(%rbp)
+    movq    %rcx, -24(%rbp)
+    movq    %r11, -32(%rbp)
+
+    <span class="cm"># aux((short)i, (values + i))</span>
+    movw    %cx, di
+    movq    $values, %rsi
+    movslq  %ecx, %r10
+    imulq   $4, %r10
+    addq    %r10, %rsi
+    call    aux
+
+    <span class="cm"># Recupera registradores</span>
+    movq     -8(%rbp), %rdi
+    movq    -16(%rbp), %rsi
+    movq    -24(%rbp), %rcx
+    movq    -32(%rbp), %r11
+
+    addq    %rax, %r11              <span class="cm"># r11 = (2*limit) + aux</span>
+    movq    %r11, %rsi              <span class="cm"># limit = r11</span>
+
+    jmp     end_if
+
+<span class="lbl">else_if:</span>
+    <span class="cm"># Salva registradores</span>
+    movq    %rdi,  -8(%rbp)
+    movq    %rsi, -16(%rbp)
+    movq    %rcx, -24(%rbp)
+
+    <span class="cm"># printf("%d, %ld\n", stamp, limit)</span>
+    movq    %rsi, %rdx
+    movl    %edi, %esi
+    movq    $fmt, %rdi
+    movl    $0,   %eax
+    call    printf
+
+    <span class="cm"># Recupera registradores</span>
+    movq     -8(%rbp), %rdi
+    movq    -16(%rbp), %rsi
+    movq    -24(%rbp), %rcx
+
+<span class="lbl">end_if:</span>
+    <span class="cm"># i--</span>
+    decl    %ecx
+
+    jmp     begin_for
+
+<span class="lbl">end_for:</span>
+    <span class="cm"># return limit</span>
+    movq    %rsi, %rax
+
+    leave
+    ret</code></pre>
+
+        <div class="callout callout-red">
+          <strong>Erro de digitacao do proprio gabarito:</strong> na linha <code>movw %cx, di</code> falta o <code>%</code> em <code>di</code>. O assembler nao aceitaria isso, o correto seria <code>movw %cx, %di</code>. A transcricao mantem a forma original como foi entregue pelo professor.
+        </div>
+
+        <h3>Decisoes de mapeamento</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Variavel / Param</th><th>Tipo</th><th>Registrador</th><th>Por que</th></tr></thead>
+            <tbody>
+              <tr><td><code>stamp</code></td><td>int (1o param)</td><td>%edi / %rdi</td><td>1o argumento chega em %rdi, lemos como int (%edi)</td></tr>
+              <tr><td><code>limit</code></td><td>long (2o param)</td><td>%rsi</td><td>2o argumento chega em %rsi (64 bits)</td></tr>
+              <tr><td><code>base</code></td><td>char (3o param)</td><td>%dl</td><td>3o argumento chega em %dl (nao usado no corpo)</td></tr>
+              <tr><td><code>i</code></td><td>int (local)</td><td>%ecx</td><td>contador de loop em %ecx</td></tr>
+              <tr><td><code>values[i]</code> (temp)</td><td>int</td><td>%r8d</td><td>temporario para valor lido do array</td></tr>
+              <tr><td><code>2*limit</code> (temp)</td><td>long</td><td>%r11</td><td>acumula resultado antes de somar retorno de aux</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Pilha durante a execucao</h3>
+        <pre><code><span class="cm"># Endereco alto  ------------------------------------</span>
+<span class="cm">#                  ... frame do caller ...           </span>
+<span class="cm">#  %rbp  -------- %rbp do caller (salvo pelo pushq) </span>
+<span class="cm">#  -8(%rbp)        stamp  (%rdi / int)              </span>
+<span class="cm"># -16(%rbp)        limit  (%rsi / long)             </span>
+<span class="cm"># -24(%rbp)        i      (%rcx / int)              </span>
+<span class="cm"># -32(%rbp)        r11    (2*limit acumulado)  &lt;- %rsp</span>
+<span class="cm"># Endereco baixo  ------------------------------------</span></code></pre>
+
+        <h3>Explicacao de cada ponto</h3>
+
+        <h4>Prologo: pushq %rbp / movq %rsp, %rbp / subq $32, %rsp</h4>
+        <p>Prologo padrao da funcao. O <code>subq $32, %rsp</code> reserva 32 bytes na pilha para salvar 4 registradores callee-clobbered (8 bytes cada) antes dos calls a <code>aux</code> e <code>printf</code>. O espaco e alocado uma unica vez aqui no inicio para ser reutilizado nos dois calls.</p>
+
+        <h4>movl $7, %ecx -- inicializacao do for</h4>
+        <p>Inicializa <code>i = 7</code>. Como <code>i</code> e <code>int</code> (32 bits), usa <code>movl</code> e o registrador <code>%ecx</code> (parte 32-bit de <code>%rcx</code>). A escolha de <code>%ecx</code> segue a convencao de contador de loop.</p>
+
+        <h4>cmpl $0, %ecx / jl end_for -- condicao do for</h4>
+        <p>Avalia <code>i &gt;= 0</code>. O <code>cmpl</code> calcula <code>%ecx - 0</code> e seta flags. O <code>jl end_for</code> usa logica invertida: pula para sair do loop quando NAO vale <code>i &gt;= 0</code>, ou seja, quando <code>i &lt; 0</code>.</p>
+
+        <h4>Bloco values[i] -- calculo de endereco</h4>
+        <p>Formula geral: <code>&amp;values + i * sizeof(int) = &amp;values + i * 4</code>. Os 5 passos:</p>
+        <ol>
+          <li><code>movq $values, %r8</code> -- carrega o endereco base do array. Usa <code>movq</code> porque endereco e 64 bits, e <code>$values</code> com cifrao porque queremos o endereco, nao o valor.</li>
+          <li><code>movslq %ecx, %r9</code> -- promove <code>i</code> de int (32b) para long (64b) com sign-extend. Indices de array sempre precisam ser 64 bits para usar em <code>imulq</code>.</li>
+          <li><code>imulq $4, %r9</code> -- multiplica por <code>sizeof(int) = 4</code>.</li>
+          <li><code>addq %r8, %r9</code> -- soma base + offset = endereco final de <code>values[i]</code>.</li>
+          <li><code>movl (%r9), %r8d</code> -- desreferencia: vai ao endereco em <code>%r9</code> e le um int (32 bits) para <code>%r8d</code>.</li>
+        </ol>
+
+        <h4>cmpl %r8d, %edi / jle else_if -- if (stamp &gt; values[i])</h4>
+        <p>Compara <code>stamp - values[i]</code>. Ambos sao int, entao <code>cmpl</code>. Logica invertida no salto: <code>jle else_if</code> pula para o else quando <code>stamp &lt;= values[i]</code>, ou seja, quando o if FALHA. Cai no ramo if quando <code>stamp &gt; values[i]</code>.</p>
+
+        <h4>(2*limit) calculado ANTES do call aux</h4>
+        <p>O professor faz <code>movq %rsi, %r11</code> seguido de <code>imulq $2, %r11</code> antes de salvar nada na pilha. Isso e proposital: o <code>call aux</code> vai destruir <code>%rsi</code> (caller-saved), entao calculamos <code>2*limit</code> primeiro e guardamos em <code>%r11</code>, que tambem vai ser salvo na pilha.</p>
+
+        <h4>Salva 4 registradores na pilha antes do call</h4>
+        <p>Como <code>aux</code> pode destruir qualquer registrador caller-saved (incluindo <code>%rdi</code>, <code>%rsi</code>, <code>%rcx</code> e <code>%r11</code>), salvamos os 4 que carregam nossas variaveis vivas: stamp, limit, i e (2*limit) acumulado.</p>
+
+        <h4>movw %cx, di -- (short)i</h4>
+        <p>O cast <code>(short)i</code> e um truncamento puro: pega os 16 bits baixos de <code>%ecx</code> (que sao <code>%cx</code>) e move para <code>%di</code> (parte 16-bit de <code>%rdi</code>). Nao precisa de sign-extend nem zero-extend, porque o destino e exatamente 16 bits. <strong>Nota: o gabarito tem typo e escreve <code>di</code> sem o <code>%</code>; o assembler nao compila assim.</strong></p>
+
+        <h4>Calculo de (values + i) como segundo argumento</h4>
+        <p>O segundo parametro de <code>aux</code> e <code>int *slice</code> (ponteiro). O proprio C ja resolve a aritmetica de ponteiro: <code>values + i</code> equivale a <code>&amp;values[i]</code>. Em assembly: base + i * sizeof(int) = base + i*4, usando <code>movslq</code> + <code>imulq $4</code> + <code>addq</code>, com resultado em <code>%rsi</code> (porque ponteiros = 64 bits).</p>
+
+        <h4>call aux + restauracao</h4>
+        <p>Apos o call, restauramos os 4 registradores salvos. O retorno de <code>aux</code> e long, fica em <code>%rax</code>. Em seguida <code>addq %rax, %r11</code> soma o retorno aos <code>2*limit</code> ja calculados, e <code>movq %r11, %rsi</code> atualiza <code>limit</code>.</p>
+
+        <h4>jmp end_if -- obrigatorio</h4>
+        <p>Sem esse jmp, depois de executar o ramo if a execucao cairia direto no <code>else_if:</code> e executaria os dois ramos. O <code>jmp end_if</code> garante que apenas um dos ramos roda.</p>
+
+        <h4>Ramo else: printf(stamp, limit) -- ordem dos argumentos</h4>
+        <p>Esta e a parte mais sutil. O printf precisa de: <code>%rdi = fmt</code>, <code>%esi = stamp</code>, <code>%rdx = limit</code>. Mas no estado atual: <code>%edi = stamp</code> e <code>%rsi = limit</code>. A ordem importa:</p>
+        <ol>
+          <li><code>movq %rsi, %rdx</code> -- limit (%rsi) para %rdx PRIMEIRO. Se fizessemos depois, <code>%rsi</code> ja teria sido sobrescrito.</li>
+          <li><code>movl %edi, %esi</code> -- stamp (%edi) para %esi. Pode fazer depois sem problema porque <code>%esi</code> e o que vamos sobrescrever, e ja salvamos limit em %rdx.</li>
+          <li><code>movq $fmt, %rdi</code> -- por ultimo o ponteiro do format string.</li>
+        </ol>
+        <p>O <code>movl $0, %eax</code> e <strong>obrigatorio</strong> para chamar printf: a ABI exige que <code>%al</code> contenha o numero de argumentos float/double passados em registradores XMM. Como nao temos floats, vai zero.</p>
+
+        <h4>decl %ecx -- i--</h4>
+        <p><code>decl</code> e a versao 32-bit de decrement. Equivale a <code>subl $1, %ecx</code>. Usa <code>decl</code> e nao <code>decq</code> porque <code>i</code> e int.</p>
+
+        <h4>Epilogo: leave / ret</h4>
+        <p><code>leave</code> e atalho para <code>movq %rbp, %rsp; popq %rbp</code> -- desfaz o frame. <code>ret</code> faz pop do endereco de retorno e pula para la. O retorno (long) ja foi colocado em <code>%rax</code> com <code>movq %rsi, %rax</code> antes do leave.</p>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- PROVA 2022 - Q2                                          -->
+    <!-- ======================================================= -->
+    <div class="accordion">
+      <button class="accordion-btn active">Prova 2022 &mdash; Q2 (6,5 pts) &mdash; Gabarito do professor <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+
+        <h3>Enunciado</h3>
+        <p>Traduza o codigo C abaixo para Assembly, o mais literal possivel. Comente seu codigo. Se houver pilha, desenhe indicando os elementos e as posicoes.</p>
+
+        <pre><code>int   max   = 256;
+short lim   = -3;
+char  timer = 100;
+
+long vet1[5] = {1, 0, 2, 3, 4};
+int  vet2[5] = {0, 0, 0, 0, 0};
+
+char calc(long *a, int *b);
+long complex(int i, short j, int *v);
+
+void modify(int *v1, long *v2, char value) {
+    long index;
+    while (value > calc(v2, v1)) {
+        index = complex(max, lim, v1);
+    }
+    v1[v2[index]] = (int)value;
+}
+
+void basic(int sum) {
+    long *ptr = vet1;
+    while (sum &lt; timer) {
+        if (sum == 13) {
+            break;
+        }
+        for (int i = 0; i &lt; 10; i++, sum++) {
+            printf("i = %d, sum = %d\n", i, sum);
+        }
+        modify(vet2, ptr, timer);
+        ptr++;
+    }
+}</code></pre>
+
+        <h3>Gabarito do professor &mdash; secao .data e .rodata</h3>
+        <pre><code>    .section .rodata
+fmt:    .string "i = %d, sum = %d\n"
+
+<span class="cm">#------------------------------------------------</span>
+    .data
+
+    .globl  max
+    .align  4
+max:    .int    256
+
+    .globl  lim
+    .align  2
+lim:    .short  -3
+
+    .globl  timer
+    .align  1
+timer:  .byte   100
+
+    .globl  vet1
+    .align  8
+vet1:   .quad   1, 0, 2, 3, 4
+
+    .globl  vet2
+    .align  4
+vet2:   .int    0, 0, 0, 0, 0</code></pre>
+
+        <h3>Gabarito do professor &mdash; funcao modify (transcricao fiel)</h3>
+        <pre><code><span class="cm">#------------------------------------------------</span>
+    .text
+
+    .globl  modify
+<span class="lbl">modify:</span>
+    pushq   %rbp
+    movq    %rsp, %rbp
+
+    subq    $32, %rsp
+
+    <span class="cm"># long index
+    # rcx -> index</span>
+
+<span class="lbl">begin_while_01:</span>
+    <span class="cm"># calc(v2, v1)</span>
+    movq    %rdi,  -8(%rbp)
+    movq    %rsi, -16(%rbp)
+    movq    %rdx, -24(%rbp)
+    movq    %rcx, -32(%rbp)
+
+    movq    %rdi, %r8
+    movq    %rsi, %rdi
+    movq    %r8,  %rsi
+    call    calc
+
+    movq     -8(%rbp), %rdi
+    movq    -16(%rbp), %rsi
+    movq    -24(%rbp), %rdx
+    movq    -32(%rbp), %rcx
+
+    <span class="cm"># while (value > calc(v2, v1))</span>
+    cmpl    %al, %dl
+    jle     end_while01
+
+    <span class="cm"># complex(max, lim, v1)</span>
+    movq    %rdi,  -8(%rbp)
+    movq    %rsi, -16(%rbp)
+    movq    %rdx, -24(%rbp)
+    movq    %rcx, -32(%rbp)
+
+    movq    %rdi, %rdx
+    movl    max,  %edi
+    movw    lim,  %si
+    call    complex
+
+    movq     -8(%rbp), %rdi
+    movq    -16(%rbp), %rsi
+    movq    -24(%rbp), %rdx
+    movq    -32(%rbp), %rcx
+
+    <span class="cm"># index = complex(max, lim, v1)</span>
+    movq    %rax, %rcx
+
+    jmp     begin_while01
+
+<span class="lbl">end_while_01:</span>
+    <span class="cm"># v2[index]</span>
+    movq    %rcx, %r8
+    imulq   $8, %r8
+    addq    %rsi, %r8              <span class="cm"># r8 = &v2[index]</span>
+    movq    (%r8), %r9             <span class="cm"># r9 = v2[index]</span>
+
+    <span class="cm"># v1[ v2[index] ]</span>
+    imulq   $4, %r9
+    addq    %rdi, %r9              <span class="cm"># r9 = &v1[ v2[index] ]</span>
+
+    <span class="cm"># v1[ v2[index] ] = (int)value</span>
+    movsbl  %dl, %r8d              <span class="cm"># r8d = (int)value</span>
+    movl    %r8d, (%r9)            <span class="cm"># v1[ ] = r8d</span>
+
+    leave
+    ret</code></pre>
+
+        <div class="callout callout-red">
+          <strong>Erros de digitacao no gabarito do modify:</strong>
+          <ul>
+            <li><code>cmpl %al, %dl</code> -- ambos sao 8 bits, entao o correto seria <code>cmpb</code>. O assembler nao aceita <code>cmpl</code> com registradores de 8 bits.</li>
+            <li>O label e <code>begin_while_01:</code> (com underscore) mas o jump volta com <code>jmp begin_while01</code> (sem underscore). Isso geraria erro de simbolo nao definido.</li>
+            <li>O label de saida e <code>end_while_01:</code> (com underscore) mas o desvio usa <code>jle end_while01</code> (sem underscore). Mesmo problema.</li>
+          </ul>
+        </div>
+
+        <h3>Gabarito do professor &mdash; funcao basic (transcricao fiel)</h3>
+        <pre><code>    .globl  basic
+<span class="lbl">basic:</span>
+    pushq   %rbp
+    movq    %rsp, %rbp
+
+    subq    $32, %rsp
+
+    <span class="cm"># ptr = vet1
+    # ptr -> rcx</span>
+    movq    $vet1, %rcx
+
+    <span class="cm"># while (sum &lt; timer)</span>
+    movsbl  timer, %r9d
+    cmpl    %r9d, %edi
+    jge     end_while02
+
+    <span class="cm"># if (sum == 13)</span>
+    cmpl    $13, %edi
+    je      end_while02
+
+    <span class="cm"># for (int i = 0; i &lt; 10; i++, sum++)
+    # i -> %r8d</span>
+
+    movl    $0, %r8d
+<span class="lbl">begin_for02:</span>
+    cmpl    $10, %r8d
+    jge     end_for02
+
+    movq    %rdi,  -8(%rbp)
+    movq    %rcx, -16(%rbp)
+    movq    %r8,  -24(%rbp)
+
+    <span class="cm"># printf("i = %d, sum = %d\n", i, sum)</span>
+    movq    %ecx, %esi
+    movq    %edi, %edx
+    movq    $fmt, %rdi
+    movl    $0,   %eax
+    call    printf
+
+    movq     -8(%rbp), %rdi
+    movq    -16(%rbp), %rcx
+    movq    -24(%rbp), %r8
+
+    incl    %r8d
+    incl    %edi
+<span class="lbl">end_for02:</span>
+
+    movq    %rdi,  -8(%rbp)
+    movq    %rcx, -16(%rbp)
+
+    <span class="cm"># modify(vet2, ptr, timer)</span>
+    movq    $vet2, %rdi
+    movq    %rcx,  %rsi
+    movb    timer, %cl
+    call    modify
+
+    movq     -8(%rbp), %rdi
+    movq    -16(%rbp), %rcx
+
+    <span class="cm"># ptr++</span>
+    addq    $8, %rcx
+
+<span class="lbl">end_while02:</span>
+
+    leave
+    ret</code></pre>
+
+        <div class="callout callout-red">
+          <strong>Erros mais graves no gabarito do basic:</strong>
+          <ul>
+            <li><code>movq %ecx, %esi</code> e <code>movq %edi, %edx</code> -- <code>movq</code> exige operandos de 64 bits, mas <code>%ecx</code>/<code>%esi</code>/<code>%edi</code>/<code>%edx</code> sao todos de 32 bits. O correto seria <code>movl</code>.</li>
+            <li>O 1o argumento de printf esta vindo de <code>%ecx</code> (que armazena <code>ptr</code>) ao inves de <code>%r8d</code> (que armazena <code>i</code>). O printf imprimiria o valor de ptr no lugar de i.</li>
+            <li>Nao existe o label <code>begin_while02:</code> nem ha <code>jmp begin_while02</code> no final. Isso quebra o loop externo, que nunca volta a verificar a condicao -- a funcao executaria a primeira iteracao e retornaria, em vez de iterar enquanto <code>sum &lt; timer</code>.</li>
+            <li>O <code>jmp begin_for02</code> no fim do bloco de incrementos (necessario para fechar o loop interno) tambem esta ausente. O for interno tambem nao laceiaria de verdade.</li>
+          </ul>
+          A transcricao acima mantem exatamente o que o professor escreveu, com todos esses problemas, porque foi entregue oficialmente como gabarito.
+        </div>
+
+        <h3>Decisoes de mapeamento &mdash; modify</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Variavel / Param</th><th>Tipo</th><th>Registrador</th><th>Por que</th></tr></thead>
+            <tbody>
+              <tr><td><code>v1</code></td><td>int* (1o param)</td><td>%rdi</td><td>ponteiro = 64 bits, 1o param chega em %rdi</td></tr>
+              <tr><td><code>v2</code></td><td>long* (2o param)</td><td>%rsi</td><td>ponteiro = 64 bits, 2o param chega em %rsi</td></tr>
+              <tr><td><code>value</code></td><td>char (3o param)</td><td>%dl</td><td>char = 8 bits, 3o param chega em %dl</td></tr>
+              <tr><td><code>index</code></td><td>long (local)</td><td>%rcx</td><td>temporario, long = 64 bits</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Decisoes de mapeamento &mdash; basic</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Variavel / Param</th><th>Tipo</th><th>Registrador</th><th>Por que</th></tr></thead>
+            <tbody>
+              <tr><td><code>sum</code></td><td>int (1o param)</td><td>%edi</td><td>int = 32 bits, 1o param chega em %rdi, lemos como %edi</td></tr>
+              <tr><td><code>ptr</code></td><td>long* (local)</td><td>%rcx</td><td>ponteiro = 64 bits, temporario</td></tr>
+              <tr><td><code>i</code> (for interno)</td><td>int (local)</td><td>%r8d</td><td>int = 32 bits, %ecx ja ocupado por ptr</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Explicacao de cada ponto &mdash; modify</h3>
+
+        <h4>Prologo e reserva de 32 bytes</h4>
+        <p>Mesma logica de Q1: 32 bytes na pilha para guardar 4 registradores callee-clobbered (%rdi, %rsi, %rdx, %rcx) antes de cada call. Reserva uma vez so e usa nos dois calls (calc e complex).</p>
+
+        <h4>Inversao de argumentos para calc(v2, v1)</h4>
+        <p>Esta e a parte mais sutil de modify. A funcao <code>calc</code> tem assinatura <code>char calc(long *a, int *b)</code>, ou seja, espera <code>v2</code> primeiro e <code>v1</code> depois. Mas a funcao modify recebe na ordem <code>(v1=%rdi, v2=%rsi)</code>. Precisamos trocar:</p>
+        <ol>
+          <li><code>movq %rdi, %r8</code> -- salva v1 em <code>%r8</code> temporariamente (sem isso, perderiamos v1 ao sobrescrever %rdi).</li>
+          <li><code>movq %rsi, %rdi</code> -- v2 vai para o lugar do 1o argumento.</li>
+          <li><code>movq %r8, %rsi</code> -- recupera v1 e poe no lugar do 2o argumento.</li>
+        </ol>
+
+        <h4>cmpl %al, %dl -- avaliacao do while (BUG)</h4>
+        <p>A intencao e comparar o retorno de calc (em <code>%al</code>, char) com <code>value</code> (em <code>%dl</code>, char). Ambos sao 8 bits. O correto seria <code>cmpb %al, %dl</code>. O professor escreveu <code>cmpl</code>, que nao compila com operandos de 8 bits. O <code>jle end_while01</code> usa logica invertida: pula se NAO (value &gt; calc), ou seja, sai do while quando <code>value &lt;= calc</code>.</p>
+
+        <h4>Ordem dos argumentos de complex(max, lim, v1)</h4>
+        <p>Assinatura: <code>long complex(int i, short j, int *v)</code>. Os args precisam ir para <code>%edi</code> (max), <code>%si</code> (lim) e <code>%rdx</code> (v1). Antes do call, v1 estava em <code>%rdi</code>. Para nao perder v1:</p>
+        <ol>
+          <li><code>movq %rdi, %rdx</code> -- v1 vai PRIMEIRO para %rdx (3o arg), antes de %rdi ser sobrescrito.</li>
+          <li><code>movl max, %edi</code> -- carrega max (global) direto para %edi. <code>max</code> sem cifrao = valor da global, com cifrao seria o endereco.</li>
+          <li><code>movw lim, %si</code> -- carrega lim (global short de 16 bits) para %si.</li>
+        </ol>
+
+        <h4>v1[v2[index]] = (int)value -- acesso encadeado</h4>
+        <p>Dois acessos a array, do mais interno para o mais externo:</p>
+        <ol>
+          <li><strong>Calcular &amp;v2[index]:</strong> v2 e long* (sizeof = 8). <code>imulq $8, %r8</code> + <code>addq %rsi, %r8</code> = endereco. Depois <code>movq (%r8), %r9</code> le o long armazenado la.</li>
+          <li><strong>Usar v2[index] como indice de v1:</strong> v1 e int* (sizeof = 4). <code>imulq $4, %r9</code> + <code>addq %rdi, %r9</code> = endereco de v1[v2[index]].</li>
+          <li><strong>(int)value:</strong> value e char. Cast para int = sign-extend: <code>movsbl %dl, %r8d</code>.</li>
+          <li><strong>Escrita final:</strong> <code>movl %r8d, (%r9)</code> grava o int de 4 bytes no endereco calculado.</li>
+        </ol>
+
+        <h3>Explicacao de cada ponto &mdash; basic</h3>
+
+        <h4>movq $vet1, %rcx -- ptr = vet1</h4>
+        <p>Inicializa o ponteiro local <code>ptr</code>. Como vet1 e um array global, seu nome em C ja decai para endereco; em assembly usamos <code>$vet1</code> (com cifrao) para pegar o endereco do simbolo. <code>movq</code> porque ponteiros sao 64 bits.</p>
+
+        <h4>Condicao while (sum &lt; timer) -- promocao de char para int</h4>
+        <p>timer e <code>char</code> (8 bits, signed). sum e <code>int</code> (32 bits). Nao se pode comparar diretamente: precisa promover timer para int. <code>movsbl timer, %r9d</code> le o byte e sign-extend para int. Depois <code>cmpl %r9d, %edi</code> + <code>jge end_while02</code> -- logica invertida.</p>
+
+        <h4>if (sum == 13) break -- jump direto para fim do while</h4>
+        <p>O <code>break</code> e implementado como salto incondicional para o label de fim do while externo. Como queremos sair apenas quando sum == 13, usa-se <code>je end_while02</code> (jump if equal).</p>
+
+        <h4>Loop for interno (i de 0 a 9, sum++ junto)</h4>
+        <p>Note o <code>i++, sum++</code> no pos-passo: as duas variaveis sao incrementadas a cada iteracao (<code>incl %r8d</code> e <code>incl %edi</code>). O <code>i</code> nao podia ficar em <code>%ecx</code> porque ele ja armazena <code>ptr</code> -- por isso vai para <code>%r8d</code>.</p>
+
+        <h4>Ordem dos args de printf -- BUG do gabarito</h4>
+        <p>O printf espera <code>%rdi = fmt</code>, <code>%esi = i</code>, <code>%edx = sum</code>. O professor escreveu:</p>
+        <ul>
+          <li><code>movq %ecx, %esi</code> -- DOIS bugs: (1) <code>movq</code> com 32-bit nao compila; (2) <code>%ecx</code> tem <code>ptr</code>, nao <code>i</code>. O correto seria <code>movl %r8d, %esi</code>.</li>
+          <li><code>movq %edi, %edx</code> -- mesmo erro de tamanho. O correto seria <code>movl %edi, %edx</code>.</li>
+        </ul>
+        <p>A logica de ordem esta certa em principio: sum (do %edi) para %edx ANTES de sobrescrever %rdi com $fmt. So que o registrador do i esta errado.</p>
+
+        <h4>modify(vet2, ptr, timer) -- preparacao dos args</h4>
+        <p>Assinatura: <code>void modify(int *v1, long *v2, char value)</code>:</p>
+        <ol>
+          <li><code>movq $vet2, %rdi</code> -- endereco de vet2 para %rdi (1o arg).</li>
+          <li><code>movq %rcx, %rsi</code> -- ptr para %rsi (2o arg). ptr ja era ponteiro, basta copiar.</li>
+          <li><code>movb timer, %cl</code> -- carrega o byte de timer para %cl (3o arg, char). Para um char, <code>%cl</code> e a parte 8 bits de <code>%rcx</code>. Note que isso destroi o byte baixo do <code>ptr</code> que estava em <code>%rcx</code> -- por isso ptr ja foi copiado para <code>%rsi</code> antes (e tambem salvo em -16(%rbp) no inicio).</li>
+        </ol>
+
+        <h4>ptr++ -- aritmetica de ponteiro long*</h4>
+        <p><code>addq $8, %rcx</code>. Como ptr e long*, incrementar 1 posicao = avancar <code>sizeof(long) = 8</code> bytes.</p>
+
+        <h4>Loop ausente (BUG)</h4>
+        <p>Apos o ptr++, o codigo cai direto em <code>end_while02:</code> sem nenhum <code>jmp begin_while02</code>. Isso significa que o while externo executa uma unica iteracao e termina. Logicamente esta errado -- o codigo C exige iterar enquanto <code>sum &lt; timer</code>.</p>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- PROVA 2025 - Q1                                          -->
+    <!-- ======================================================= -->
+    <div class="accordion">
+      <button class="accordion-btn active">Prova 2025 &mdash; Q1 (4,0 pts): funcao auxiliar com if aninhado, acesso a array long[], shift e cast <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+
+        <h3>Codigo C original</h3>
+        <pre><code>int init_complement();   <span class="cm">// definida em outro arquivo</span>
+
+char  bias = 3;
+short max = 1024;
+long  complement[4] = {0, 0, 0, 0};
+
+void auxiliar() {
+    int range = init_complement();
+
+    if (range &lt; max) {
+        complement[range]++;
+        if (range) {                              <span class="cm">// equivale a: if (range != 0)</span>
+            bias = (char)(range * max);
+            range = (int)(bias >> 3);
+        }
+    } else {
+        complement[bias] = (long)max;
+    }
+}</code></pre>
+
+        <h3>Decisoes de mapeamento</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Variavel</th><th>Tipo</th><th>Registrador</th><th>Por que</th></tr></thead>
+            <tbody>
+              <tr><td><code>range</code></td><td>int (local, retorno de init_complement)</td><td>%ecx</td><td>int = 32 bits; temporario pos-call</td></tr>
+              <tr><td><code>max</code> (temp)</td><td>short global</td><td>%r8d / %r8w</td><td>lido da global; promovido para int quando necessario</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Analise das conversoes de tipo</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Expressao C</th><th>Conversao</th><th>Instrucao</th><th>Detalhes</th></tr></thead>
+            <tbody>
+              <tr><td><code>range &lt; max</code></td><td>max (short) promovido para int</td><td><code>movswl max, %r8d</code></td><td>compara int com int; movswl = sign-extend short->int</td></tr>
+              <tr><td><code>complement[range]++</code></td><td>range (int) precisa virar long p/ calculo de endereco</td><td><code>movslq %ecx, %r10</code></td><td>indice de array sempre em 64 bits para imulq</td></tr>
+              <tr><td><code>range * max</code></td><td>max (short) promovido para int p/ multiplicar com int</td><td><code>movswl max, %r8d</code> + <code>imull %ecx, %r8d</code></td><td>resultado fica em %r8d (int 32 bits)</td></tr>
+              <tr><td><code>(char)(range * max)</code></td><td>int truncado para char</td><td><code>movb %r8b, bias</code></td><td>pega apenas os 8 bits baixos de %r8d via %r8b</td></tr>
+              <tr><td><code>bias >> 3</code></td><td>bias e char (signed) -- shift aritmetico</td><td><code>movsbl bias, %r8d</code> + <code>sarl $3, %r8d</code></td><td>SAR preserva o bit de sinal (tipo signed); le bias e promove para int primeiro</td></tr>
+              <tr><td><code>(int)(bias >> 3)</code></td><td>resultado ja e int depois do sarl</td><td><code>movl %r8d, %ecx</code></td><td>copia para range (%ecx)</td></tr>
+              <tr><td><code>complement[bias]</code></td><td>bias (char) vira indice -- precisa ser int ou long</td><td><code>movsbl bias, %r8d</code> + <code>movslq %r8d, %r10</code></td><td>dois passos: char->int, depois int->long</td></tr>
+              <tr><td><code>(long)max</code></td><td>max (short) para long</td><td><code>movswq max, %r11</code></td><td>movswq = sign-extend short->quad (long 64 bits)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Traducao Assembly completa e comentada</h3>
+        <pre><code>    .data
+
+    .globl  bias
+    .align  1
+bias:   .byte   3
+
+    .globl  max
+    .align  2
+max:    .short  1024
+
+    .globl  complement
+    .align  8                       <span class="cm"># long[] -> alinhamento = sizeof(long) = 8</span>
+complement: .quad 0, 0, 0, 0       <span class="cm"># 4 longs = 32 bytes</span>
+
+<span class="cm">#---------------------------------------------------------------</span>
+    .text
+
+    .globl  auxiliar
+<span class="cm"># void auxiliar()  -- sem parametros, sem retorno
+# range -> %ecx  (int, local, recebe retorno de init_complement)</span>
+<span class="lbl">auxiliar:</span>
+    pushq   %rbp
+    movq    %rsp, %rbp
+    subq    $8, %rsp                <span class="cm"># 1 reg x 8 bytes (so precisamos salvar %rcx antes de init_complement)</span>
+
+    <span class="cm"># int range = init_complement();
+    # init_complement nao tem parametros. Retorno int fica em %eax.</span>
+    movl    $0, %eax                <span class="cm"># boa pratica: zera %eax antes de call sem float (nao obrigatorio aqui, mas seguro)</span>
+    call    init_complement         <span class="cm"># chama; nao ha parametros a carregar</span>
+    movl    %eax, %ecx              <span class="cm"># range = retorno  (%eax = retorno int -> %ecx)</span>
+
+    <span class="cm"># if (range &lt; max)
+    # max e short; para comparar com int (range), precisamos promover max para int</span>
+    movswl  max, %r8d               <span class="cm"># %r8d = (int)max  (movswl = sign-extend short->int; max sem $ = valor)</span>
+    cmpl    %r8d, %ecx              <span class="cm"># computa %ecx - %r8d = range - max  (src=%r8d, dst=%ecx)</span>
+    jge     else_if1                <span class="cm"># pula para else se NAO (range &lt; max), ou seja, se range >= max</span>
+
+    <span class="cm"># --- ramo if: complement[range]++ ---
+    # complement e long[], range e int. Precisa sign-extend para calcular endereco.
+    # Endereco de complement[range] = &complement + range * 8</span>
+    movq    $complement, %r9        <span class="cm"># %r9 = endereco de complement</span>
+    movslq  %ecx, %r10              <span class="cm"># %r10 = (long)range  (movslq: sign-extend int->long para calculo)</span>
+    imulq   $8, %r10                <span class="cm"># %r10 = range * 8  ($8 = sizeof(long))</span>
+    addq    %r9, %r10               <span class="cm"># %r10 = &complement[range]</span>
+    movq    (%r10), %r11            <span class="cm"># %r11 = complement[range]  (le o long atual)</span>
+    incq    %r11                    <span class="cm"># %r11++  (incq = incrementa 64 bits)</span>
+    movq    %r11, (%r10)            <span class="cm"># complement[range] = %r11  (escreve de volta)</span>
+
+    <span class="cm"># if (range)  -- equivale a if (range != 0)
+    # Padrao: cmpl $0, reg + je para pular quando range == 0 (falso)</span>
+    cmpl    $0, %ecx                <span class="cm"># computa %ecx - 0</span>
+    je      end_if2                 <span class="cm"># pula se range == 0  (logica invertida: pula quando condicao e FALSA)</span>
+
+    <span class="cm"># --- bias = (char)(range * max) ---
+    # range e int (%ecx), max e short. Para multiplicar int * short, promove max para int.</span>
+    movswl  max, %r8d               <span class="cm"># %r8d = (int)max</span>
+    imull   %ecx, %r8d              <span class="cm"># %r8d = range * max  (imull: multiplicacao signed 32 bits; src=%ecx, dst=%r8d)</span>
+    movb    %r8b, bias              <span class="cm"># bias = (char)(range*max)  (%r8b = byte baixo de %r8d = truncamento int->char)</span>
+
+    <span class="cm"># --- range = (int)(bias >> 3) ---
+    # bias e char (signed). Shift direita em tipo com sinal = SAR (aritmetico, preserva bit de sinal).
+    # Precisamos ler bias da memoria (acabamos de escrever) e promover para int antes do shift.</span>
+    movsbl  bias, %r8d              <span class="cm"># %r8d = (int)bias  (le char atualizado, sign-extend para int)</span>
+    sarl    $3, %r8d                <span class="cm"># %r8d = %r8d >> 3  (SAR = shift aritmetico; $3 = constante de deslocamento)</span>
+    movl    %r8d, %ecx              <span class="cm"># range = resultado  (atualiza %ecx que armazena range)</span>
+
+<span class="lbl">end_if2:</span>
+    jmp     end_if1                 <span class="cm"># OBRIGATORIO: pula o else</span>
+
+<span class="lbl">else_if1:</span>
+    <span class="cm"># --- complement[bias] = (long)max ---
+    # bias e char (indice). Para calcular endereco de complement[bias]:
+    # 1. Promove char para int (movsbl)
+    # 2. Promove int para long (movslq) para usar em imulq</span>
+    movsbl  bias, %r8d              <span class="cm"># %r8d = (int)bias  (char -> int, sign-extend)</span>
+    movq    $complement, %r9        <span class="cm"># %r9 = endereco de complement</span>
+    movslq  %r8d, %r10              <span class="cm"># %r10 = (long)(int)bias  (int -> long para calculo de endereco)</span>
+    imulq   $8, %r10                <span class="cm"># %r10 = bias * 8  (sizeof long = 8)</span>
+    addq    %r9, %r10               <span class="cm"># %r10 = &complement[bias]</span>
+    movswq  max, %r11               <span class="cm"># %r11 = (long)max  (movswq = sign-extend short->quad/long)</span>
+    movq    %r11, (%r10)            <span class="cm"># complement[bias] = (long)max  (grava long no endereco calculado)</span>
+
+<span class="lbl">end_if1:</span>
+    leave
+    ret</code></pre>
+
+        <div class="callout callout-yellow">
+          <strong>Pontos criticos desta questao:</strong>
+          <ul>
+            <li><strong>if (range):</strong> condicao sem operador explicito. Equivale a <code>if (range != 0)</code>. Traduz como <code>cmpl $0, %ecx</code> + <code>je end_if2</code> (pula quando range == 0, ou seja, quando a condicao e FALSA).</li>
+            <li><strong>SAR vs SHR:</strong> bias e char (tipo com sinal), entao <code>>></code> vira <code>sarl</code> (shift aritmetico), nao <code>shrl</code>. Usar shrl aqui seria errado e perderia pontos.</li>
+            <li><strong>(char)(range * max):</strong> multiplicacao e feita em int (32 bits), depois truncada para char via <code>movb %r8b, bias</code> -- pega apenas o byte baixo.</li>
+            <li><strong>bias como indice:</strong> char nao pode ser usado direto em imulq. Precisa de dois passos: movsbl (char->int) depois movslq (int->long).</li>
+            <li><strong>jmp antes do else:</strong> obrigatorio o <code>jmp end_if1</code> no final do ramo if para nao cair no else.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- PROVA 2025 - Q2                                          -->
+    <!-- ======================================================= -->
+    <div class="accordion">
+      <button class="accordion-btn active">Prova 2025 &mdash; Q2 (6,0 pts): funcao converter com for, ponteiro short*, multiplos casts, chamadas mixer e upper, XOR <span class="accordion-icon">+</span></button>
+      <div class="accordion-content open">
+
+        <h3>Codigo C original</h3>
+        <pre><code>long mixer(short value, short *v, int i, long f);  <span class="cm">// definida em outro arquivo</span>
+int  upper(long f, int i);                          <span class="cm">// definida em outro arquivo</span>
+
+int   i      = 0;
+int   swap   = 10;
+long  factor = 2048;
+short vetor[4] = {100, 200, 300, 400};
+
+void converter() {
+    short *ptr;
+    for ( ; i &lt; (swap * 2) ; i++) {
+        ptr = &amp;vetor[i] + 2;
+        swap = (int)mixer(*ptr, vetor, swap, factor);
+        factor = (long)swap;
+        vetor[factor] = (short)upper(factor, swap);
+        if (swap > 0)
+            swap = i ^ 0xFFEEDDCC;
+    }
+}</code></pre>
+
+        <h3>Decisoes de mapeamento</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Variavel / Param</th><th>Tipo</th><th>Registrador</th><th>Por que</th></tr></thead>
+            <tbody>
+              <tr><td><code>ptr</code></td><td>short* (local)</td><td>%rcx</td><td>ponteiro = 64 bits; temporario</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-blue">
+          <strong>Variaveis globais:</strong> i, swap, factor e vetor sao globais. Sao lidas e escritas diretamente da memoria a cada uso (sem save/restore, pois a memoria sobrevive aos calls). Apenas ptr (local) precisa ser salvo.
+        </div>
+
+        <h3>Analise linha a linha das traducoes complexas</h3>
+
+        <h4>ptr = &amp;vetor[i] + 2</h4>
+        <div class="callout callout-blue">
+          <code>&amp;vetor[i]</code> e o endereco do elemento i. Como vetor e short[], <code>+2</code> em aritmetica de ponteiro avanca 2 * sizeof(short) = 2 * 2 = 4 bytes. Resultado e um short*.
+        </div>
+        <pre><code><span class="cm"># ptr = &amp;vetor[i] + 2
+# Passo 1: calcular &amp;vetor[i]</span>
+movq    $vetor, %r8             <span class="cm"># %r8 = endereco base de vetor</span>
+movslq  i, %r9                  <span class="cm"># %r9 = (long)i  (le global i, sign-extend para 64 bits)</span>
+imulq   $2, %r9                 <span class="cm"># %r9 = i * 2  ($2 = sizeof(short))</span>
+addq    %r8, %r9                <span class="cm"># %r9 = &amp;vetor[i]</span>
+<span class="cm"># Passo 2: +2 em aritmetica de ponteiro short* = +2*sizeof(short) = +4 bytes</span>
+addq    $4, %r9                 <span class="cm"># %r9 = &amp;vetor[i] + 2  (aritmetica de ponteiro: +2 posicoes de short = +4 bytes)</span>
+movq    %r9, %rcx               <span class="cm"># ptr = %r9  (salva ponteiro em %rcx)</span></code></pre>
+
+        <h4>swap = (int)mixer(*ptr, vetor, swap, factor)</h4>
+        <div class="callout callout-blue">
+          mixer recebe <code>(short value, short *v, int i, long f)</code>. O 1o arg e <code>*ptr</code> = valor apontado por ptr (short). O 2o arg e o endereco de vetor (short*). O 3o e swap (int). O 4o e factor (long). O retorno e long, truncado para int pelo cast.
+        </div>
+        <pre><code><span class="cm"># Salva registradores antes do call mixer()</span>
+movq    %rcx, -8(%rbp)          <span class="cm"># salva ptr</span>
+
+<span class="cm"># Prepara argumentos para mixer(short value, short *v, int i, long f):
+# 4o param (long factor) -> %rcx  -- faz ANTES de sobrescrever outros</span>
+movq    factor, %rcx            <span class="cm"># 4o: factor (long) -> %rcx  (le global long 64b)</span>
+movl    swap, %edx              <span class="cm"># 3o: swap (int)    -> %edx</span>
+movq    $vetor, %rsi            <span class="cm"># 2o: &amp;vetor (short*) -> %rsi  ($vetor = endereco)</span>
+<span class="cm"># 1o param: *ptr = valor no endereco em %rcx... mas %rcx foi sobrescrito!
+# Por isso salvamos ptr primeiro em -8(%rbp). Agora restauramos para ler *ptr.</span>
+movq    -8(%rbp), %r10          <span class="cm"># %r10 = ptr  (recupera ponteiro antes de usarmos como 1o arg)</span>
+movw    (%r10), %di             <span class="cm"># 1o: *ptr (short) -> %di  ((%r10) = desreferencia; movw pq short=16b)</span>
+call    mixer                   <span class="cm"># retorno long em %rax</span>
+
+movq    -8(%rbp), %rcx          <span class="cm"># restaura ptr</span>
+movl    %eax, swap              <span class="cm"># swap = (int)mixer(...)  (%eax = parte 32b de %rax = truncamento long->int)</span></code></pre>
+
+        <h4>factor = (long)swap e vetor[factor] = (short)upper(factor, swap)</h4>
+        <pre><code><span class="cm"># factor = (long)swap
+# swap e int; (long)swap = sign-extend int para long</span>
+movslq  swap, %r8               <span class="cm"># %r8 = (long)swap  (movslq = sign-extend int->long)</span>
+movq    %r8, factor             <span class="cm"># factor = (long)swap  (grava long na global)</span>
+
+<span class="cm"># vetor[factor] = (short)upper(factor, swap)
+# Primeiro calcula o endereco de vetor[factor] ANTES de chamar upper
+# (o call destroiria %r8 que tem factor)
+
+# Salva ptr e calcula &amp;vetor[factor]</span>
+movq    %rcx, -8(%rbp)          <span class="cm"># salva ptr</span>
+movq    factor, %r8             <span class="cm"># %r8 = factor (long)</span>
+movq    $vetor, %r9             <span class="cm"># %r9 = &amp;vetor[0]</span>
+imulq   $2, %r8                 <span class="cm"># %r8 = factor * 2  (sizeof(short) = 2)</span>
+addq    %r9, %r8                <span class="cm"># %r8 = &amp;vetor[factor]</span>
+movq    %r8, -16(%rbp)          <span class="cm"># salva endereco de vetor[factor] na pilha</span>
+
+<span class="cm"># Prepara argumentos para upper(long f, int i)
+# upper(factor, swap): 1o param = factor (long), 2o param = swap (int)</span>
+movl    swap, %esi              <span class="cm"># 2o: swap (int) -> %esi</span>
+movq    factor, %rdi            <span class="cm"># 1o: factor (long) -> %rdi</span>
+call    upper                   <span class="cm"># retorno int em %eax</span>
+
+movq    -8(%rbp), %rcx          <span class="cm"># restaura ptr</span>
+movq    -16(%rbp), %r9          <span class="cm"># restaura &amp;vetor[factor]</span>
+movw    %ax, (%r9)              <span class="cm"># vetor[factor] = (short)upper(...)  (%ax = 16b baixos de %eax = truncamento int->short)</span></code></pre>
+
+        <h4>swap = i ^ 0xFFEEDDCC</h4>
+        <pre><code><span class="cm"># swap = i ^ 0xFFEEDDCC
+# i e int, 0xFFEEDDCC e uma constante int. XOR bit a bit em 32 bits.</span>
+movl    i, %r10d                <span class="cm"># %r10d = i  (le global int)</span>
+xorl    $0xFFEEDDCC, %r10d     <span class="cm"># %r10d = i ^ 0xFFEEDDCC  (xorl = XOR 32 bits)</span>
+movl    %r10d, swap             <span class="cm"># swap = resultado</span></code></pre>
+
+        <h3>Traducao Assembly completa e comentada</h3>
+        <pre><code>    .data
+
+    .globl  i
+    .align  4
+i:      .int    0
+
+    .globl  swap
+    .align  4
+swap:   .int    10
+
+    .globl  factor
+    .align  8
+factor: .quad   2048
+
+    .globl  vetor
+    .align  2                       <span class="cm"># short[] -> alinhamento = sizeof(short) = 2</span>
+vetor:  .short  100, 200, 300, 400  <span class="cm"># 4 shorts = 8 bytes</span>
+
+<span class="cm">#---------------------------------------------------------------</span>
+    .text
+
+    .globl  converter
+<span class="cm"># void converter()  -- sem parametros
+# ptr -> %rcx  (short*, variavel local)</span>
+<span class="lbl">converter:</span>
+    pushq   %rbp
+    movq    %rsp, %rbp
+    subq    $32, %rsp               <span class="cm"># espaco para salvar ptr e endereco de vetor[factor]: 2 regs x 8 = 16, arredondado para 32</span>
+
+    <span class="cm"># for ( ; i &lt; (swap * 2) ; i++)
+    # Nao ha inicializacao (i ja e global com valor 0).
+    # Condicao: i &lt; swap * 2
+    # Pos-passo: i++</span>
+
+<span class="lbl">begin_for:</span>
+    <span class="cm"># Avalia condicao: i &lt; (swap * 2)
+    # swap e int (global), swap*2 = shift left ou imulq</span>
+    movl    swap, %r8d              <span class="cm"># %r8d = swap</span>
+    imull   $2, %r8d                <span class="cm"># %r8d = swap * 2  (imull: multiplicacao int 32 bits)</span>
+    movl    i, %r9d                 <span class="cm"># %r9d = i  (le global)</span>
+    cmpl    %r8d, %r9d              <span class="cm"># computa %r9d - %r8d = i - (swap*2)</span>
+    jge     end_for                 <span class="cm"># pula se NAO (i &lt; swap*2), ou seja, se i >= swap*2</span>
+
+    <span class="cm"># --- ptr = &amp;vetor[i] + 2 ---</span>
+    movq    $vetor, %r8             <span class="cm"># %r8 = &amp;vetor[0]</span>
+    movslq  i, %r9                  <span class="cm"># %r9 = (long)i  (le global i, sign-extend)</span>
+    imulq   $2, %r9                 <span class="cm"># %r9 = i * sizeof(short) = i * 2</span>
+    addq    %r8, %r9                <span class="cm"># %r9 = &amp;vetor[i]</span>
+    addq    $4, %r9                 <span class="cm"># +2 posicoes de short = +4 bytes (aritmetica de ponteiro)</span>
+    movq    %r9, %rcx               <span class="cm"># ptr = %r9</span>
+
+    <span class="cm"># --- swap = (int)mixer(*ptr, vetor, swap, factor) ---
+    # Salva ptr antes de preparar os args (vamos sobrescrever %rcx)</span>
+    movq    %rcx, -8(%rbp)
+
+    movq    factor, %rcx            <span class="cm"># 4o param: factor (long) -> %rcx</span>
+    movl    swap,   %edx            <span class="cm"># 3o param: swap (int) -> %edx</span>
+    movq    $vetor, %rsi            <span class="cm"># 2o param: &amp;vetor (short*) -> %rsi</span>
+    movq    -8(%rbp), %r10          <span class="cm"># recupera ptr para ler *ptr</span>
+    movw    (%r10), %di             <span class="cm"># 1o param: *ptr (short) -> %di  (movw = 16 bits)</span>
+    call    mixer                   <span class="cm"># retorno long em %rax</span>
+
+    movq    -8(%rbp), %rcx          <span class="cm"># restaura ptr</span>
+    movl    %eax, swap              <span class="cm"># swap = (int)mixer  (%eax = 32b baixos = truncamento long->int)</span>
+
+    <span class="cm"># --- factor = (long)swap ---</span>
+    movslq  swap, %r8               <span class="cm"># %r8 = (long)swap  (movslq: sign-extend int->long)</span>
+    movq    %r8, factor             <span class="cm"># factor = (long)swap</span>
+
+    <span class="cm"># --- vetor[factor] = (short)upper(factor, swap) ---
+    # Calcula &amp;vetor[factor] antes do call (para nao perder o endereco)
+    # factor e long (indice), vetor e short[] (sizeof = 2)</span>
+    movq    %rcx, -8(%rbp)          <span class="cm"># salva ptr</span>
+    movq    factor, %r8             <span class="cm"># %r8 = factor</span>
+    movq    $vetor, %r9
+    imulq   $2, %r8                 <span class="cm"># %r8 = factor * sizeof(short) = factor * 2</span>
+    addq    %r9, %r8                <span class="cm"># %r8 = &amp;vetor[factor]</span>
+    movq    %r8, -16(%rbp)          <span class="cm"># salva endereco na pilha (call vai destruir %r8)</span>
+
+    movl    swap,   %esi            <span class="cm"># 2o param: swap (int) -> %esi</span>
+    movq    factor, %rdi            <span class="cm"># 1o param: factor (long) -> %rdi</span>
+    call    upper                   <span class="cm"># retorno int em %eax</span>
+
+    movq    -8(%rbp), %rcx          <span class="cm"># restaura ptr</span>
+    movq    -16(%rbp), %r9          <span class="cm"># recupera &amp;vetor[factor]</span>
+    movw    %ax, (%r9)              <span class="cm"># vetor[factor] = (short)upper  (%ax = 16b baixos = truncamento int->short)</span>
+
+    <span class="cm"># --- if (swap > 0) ---</span>
+    movl    swap, %r10d             <span class="cm"># %r10d = swap</span>
+    cmpl    $0, %r10d               <span class="cm"># computa swap - 0</span>
+    jle     end_if                  <span class="cm"># pula se NAO (swap > 0), ou seja, se swap &lt;= 0</span>
+
+    <span class="cm"># --- swap = i ^ 0xFFEEDDCC ---</span>
+    movl    i, %r10d                <span class="cm"># %r10d = i  (le global)</span>
+    xorl    $0xFFEEDDCC, %r10d     <span class="cm"># %r10d = i XOR 0xFFEEDDCC  (xorl = XOR 32 bits)</span>
+    movl    %r10d, swap             <span class="cm"># swap = resultado</span>
+
+<span class="lbl">end_if:</span>
+    <span class="cm"># pos-passo do for: i++</span>
+    movl    i, %r10d                <span class="cm"># le global i</span>
+    incl    %r10d                   <span class="cm"># i++</span>
+    movl    %r10d, i                <span class="cm"># escreve de volta (i e global, nao registrador)</span>
+
+    jmp     begin_for
+
+<span class="lbl">end_for:</span>
+    leave
+    ret</code></pre>
+
+        <div class="callout callout-yellow">
+          <strong>Pontos criticos desta questao:</strong>
+          <ul>
+            <li><strong>ptr = &amp;vetor[i] + 2:</strong> o <code>+2</code> e aritmetica de ponteiro sobre short*, entao avanca 2 * sizeof(short) = 4 bytes, nao 2. Usar <code>addq $4, %r9</code>.</li>
+            <li><strong>*ptr como argumento:</strong> ptr esta em %rcx, mas %rcx e necessario para o 4o argumento de mixer. Salve ptr na pilha antes, use %r10 para recuperar e desreferenciar.</li>
+            <li><strong>Ordem dos args de mixer:</strong> 4 argumentos. O 4o (long factor) vai para %rcx. Prepare %rcx por ultimo, pois %rcx tambem e onde ptr esta guardado.</li>
+            <li><strong>(short)upper(...):</strong> upper retorna int (%eax). Truncamento para short = pegar os 16 bits baixos via <code>movw %ax, (%r9)</code>.</li>
+            <li><strong>i e global:</strong> nao esta em registrador fixo. A cada leitura: <code>movl i, %r10d</code>. A cada escrita: <code>movl %r10d, i</code>. O incremento <code>i++</code> tambem passa pela memoria.</li>
+            <li><strong>XOR com constante grande:</strong> <code>xorl $0xFFEEDDCC, %r10d</code> -- constante cabe em 32 bits (int), entao xorl funciona diretamente.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- chapter gabaritos -->
+
+</div><!-- .page -->
+
+<button class="scroll-top" id="scrollTop">&#8679;</button>
+
+<script>
+  // Acordeoes
+  document.querySelectorAll('.accordion-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const content = btn.nextElementSibling;
+      const isOpen = content.classList.contains('open');
+      btn.classList.toggle('active', !isOpen);
+      content.classList.toggle('open', !isOpen);
+    });
+  });
+
+  // Chapter header: clica no titulo → abre/fecha todos os acordeoes do capitulo
+  document.querySelectorAll('.chapter-header').forEach(header => {
+    const icon = document.createElement('span');
+    icon.className = 'chapter-toggle';
+    icon.innerHTML = '&#9660;'; // ▼
+    header.appendChild(icon);
+
+    header.addEventListener('click', () => {
+      const chapter = header.closest('.chapter');
+      const contents = chapter.querySelectorAll('.accordion-content');
+      const btns = chapter.querySelectorAll('.accordion-btn');
+      const anyOpen = [...contents].some(c => c.classList.contains('open'));
+      if (anyOpen) {
+        contents.forEach(c => c.classList.remove('open'));
+        btns.forEach(b => b.classList.remove('active'));
+        header.classList.add('all-closed');
+      } else {
+        contents.forEach(c => c.classList.add('open'));
+        btns.forEach(b => b.classList.add('active'));
+        header.classList.remove('all-closed');
+      }
+    });
+  });
+
+  // Scroll top
+  const scrollBtn = document.getElementById('scrollTop');
+  window.addEventListener('scroll', () => {
+    scrollBtn.classList.toggle('visible', window.scrollY > 300);
+  });
+  scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // Busca
+  const searchInput = document.getElementById('search');
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    if (!q) {
+      document.querySelectorAll('.accordion').forEach(a => a.style.display = '');
+      document.querySelectorAll('.chapter').forEach(c => c.style.display = '');
+      return;
+    }
+    document.querySelectorAll('.accordion').forEach(acc => {
+      const text = acc.textContent.toLowerCase();
+      const match = text.includes(q);
+      acc.style.display = match ? '' : 'none';
+      if (match) {
+        const content = acc.querySelector('.accordion-content');
+        const btn = acc.querySelector('.accordion-btn');
+        content.classList.add('open');
+        btn.classList.add('active');
+      }
+    });
+    document.querySelectorAll('.chapter').forEach(ch => {
+      const visible = [...ch.querySelectorAll('.accordion')].some(a => a.style.display !== 'none');
+      ch.style.display = visible ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

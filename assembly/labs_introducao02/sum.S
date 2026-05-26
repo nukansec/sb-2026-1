@@ -44,8 +44,7 @@ beginwhile:
     addq    %rdx, sum           # Soma rdx diretamente na variável global 'sum' na memória
 
     # ptr++ (A MÁGICA DA ARITMÉTICA DE PONTEIROS AQUI)
-    # Veja que não é um 'incq'. O assembly exige que você diga exatamente 
-    # o tamanho do salto na memória. Como o array é de 'longs', pulamos 8 bytes.
+    # Veja que não é um 'incq'. O assembly exige que você diga exatamente o tamanho do salto na memória. Como o array é de 'longs', pulamos 8 bytes.
     addq    $8, %r8
 
     # i++
@@ -62,8 +61,7 @@ endwhile:
     movq    $fmt, %rdi    
     movq    sum, %rsi
     
-    # %eax deve ser zerado antes de chamar funções variádicas (como printf)
-    # para avisar que não estamos passando parâmetros de ponto flutuante.
+    # %eax deve ser zerado antes de chamar funções variádicas (como printf) para avisar que não estamos passando parâmetros de ponto flutuante.
     movl    $0, %eax      
     call    printf
 
